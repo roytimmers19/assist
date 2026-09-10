@@ -28,7 +28,8 @@ mag nooit zijn dat iemand met de hand in de productiedatabase gaat.
 - **Wordt gebruikt door:** elke pagina en elke serveractie, via `vereisSpeler`
   en `vereisLeider`
 - **Grenzen:**
-  - De identiteit komt uit de sessie. Een id uit het verzoek is geen identiteit.
+  - De identiteit komt uit de sessie. Wat het verzoek zelf meestuurt is geen
+    identiteit.
   - Een uitnodiging koppelt op de token. Wie met Google onder een ander adres
     binnenkomt hoort nog steeds bij de speler die is uitgenodigd.
   - Better Auth beheert wachtwoorden en hersteltokens. Deze code verzint er
