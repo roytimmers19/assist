@@ -9,9 +9,9 @@ export const dynamic = 'force-dynamic'
 export default async function Inloggen({
   searchParams,
 }: {
-  searchParams: Promise<{ uitnodiging?: string }>
+  searchParams: Promise<{ uitnodiging?: string; hersteld?: string }>
 }) {
-  const { uitnodiging } = await searchParams
+  const { uitnodiging, hersteld } = await searchParams
 
   // Kwam iemand hier vanaf een uitnodiging, dan gaat hij daarna terug, zodat
   // die alsnog wordt ingenomen in plaats van te verdwijnen.
@@ -32,16 +32,25 @@ export default async function Inloggen({
   return (
     <Poort
       titel="Inloggen"
-      inleiding="De aanwezigheid van SV Voorbeeld 2, op één plek."
+      inleiding={
+        hersteld
+          ? 'Je wachtwoord is gewijzigd. Log ermee in.'
+          : 'De aanwezigheid van SV Voorbeeld 2, op één plek.'
+      }
       voet={
-        !uitnodiging && (
-          <>
-            Nog niet in het team?{' '}
-            <Link href="/aanmelden" className="text-club-op underline underline-offset-4">
-              Aanmelden met de teamcode
-            </Link>
-          </>
-        )
+        <div className="flex flex-col gap-2">
+          <Link href="/wachtwoord-vergeten" className="text-club-op underline underline-offset-4">
+            Wachtwoord vergeten?
+          </Link>
+          {!uitnodiging && (
+            <span>
+              Nog niet in het team?{' '}
+              <Link href="/aanmelden" className="text-club-op underline underline-offset-4">
+                Aanmelden met de teamcode
+              </Link>
+            </span>
+          )}
+        </div>
       }
     >
       <Toegang naarwaar={naarwaar} />

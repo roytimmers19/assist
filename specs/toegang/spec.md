@@ -40,18 +40,17 @@ mag nooit zijn dat iemand met de hand in de productiedatabase gaat.
 
 ### Wanneer is het af
 
-- [ ] Een speler met een wachtwoordaccount kiest een nieuw wachtwoord zonder
-      dat iemand de database opent — via een link per mail, of via een link die
-      zijn leider voor hem klaarzet en doorstuurt.
-- [ ] Op `/inloggen` staat "Wachtwoord vergeten?", en die wijst ook de weg
+- [x] Een speler met een wachtwoordaccount kiest een nieuw wachtwoord zonder
+      dat iemand de database opent: zijn leider zet een herstellink klaar en
+      stuurt die door.
+- [x] Op `/inloggen` staat "Wachtwoord vergeten?", en die wijst ook de weg
       wanneer er geen mail verstuurd kan worden.
-- [ ] Wie met Google binnenkomt op een adres dat hier een wachtwoordaccount
+- [x] Wie met Google binnenkomt op een adres dat hier een wachtwoordaccount
       heeft, leest in het Nederlands wat er aan de hand is en wat hij kan doen.
-      Vandaag eindigt hij op de Engelse foutpagina van Better Auth met de code
-      `account_not_linked`.
-- [ ] De herstelweg werkt zonder Resend. Komt er later een afzenderdomein, dan
-      verstuurt dezelfde weg de link per mail zonder dat de knop van de leider
-      verdwijnt.
+- [x] De herstelweg werkt zonder Resend. De mailweg staat er wel: zodra
+      `RESEND_API_KEY` en `MAIL_AFZENDER` gezet zijn, verschijnt het formulier
+      op `/wachtwoord-vergeten` en gaat dezelfde link per mail. De knop van de
+      leider blijft dan bestaan voor wie zijn mail niet vindt.
 
 ### Wat nooit mag breken
 
@@ -67,55 +66,78 @@ mag nooit zijn dat iemand met de hand in de productiedatabase gaat.
 - De leider ziet een herstellink bij de spelers waar hij betekenis heeft: die
   met een wachtwoord. Bij een Google-account is er geen wachtwoord om te
   herstellen.
+- De databasetests draaien nooit tegen iets anders dan de testdatabase.
+  `tests/db/opzet.ts` zet `DATABASE_URL` gelijk aan `DATABASE_URL_TEST` voordat
+  Better Auth geladen wordt, want die pakt zijn verbinding uit de eerste.
 
 ### Scenario's
 
 ```gherkin
-Scenario: De speler vraagt zelf een nieuw wachtwoord aan
-  Gegeven dat er gemaild kan worden
-  En dat aap hier een account met een wachtwoord heeft
-  Als hij op het inlogscherm om een herstellink vraagt
-  Dan krijgt hij een mail met een link
-  En kiest hij daarmee een nieuw wachtwoord
+Scenario: De leider zet een herstellink klaar
+  Gegeven dat aap hier een account met een wachtwoord heeft
+  Als de leider bij hem om een herstellink vraagt
+  Dan krijgt hij een link die hij kan kopiëren en doorsturen
+  En gaat er niets de deur uit
 ```
 
 Bewezen door: `tests/db/herstel.test.ts`
+
+```gherkin
+Scenario: Met die link kiest de speler een nieuw wachtwoord
+  Gegeven een herstellink voor noot
+  Als hij er een nieuw wachtwoord mee kiest
+  Dan komt hij daarmee binnen
+  En werkt zijn oude wachtwoord niet meer
+```
+
+Bewezen door: `tests/db/herstel.test.ts`
+
+```gherkin
+Scenario: Een adres dat hier niet bestaat levert geen link
+  Als er om een herstellink wordt gevraagd voor mies, die hier geen account heeft
+  Dan komt er geen link
+```
+
+Bewezen door: `tests/db/herstel.test.ts`
+
+```gherkin
+Scenario: Bij een Google-account valt er niets te herstellen
+  Gegeven dat wim alleen met Google binnenkomt
+  Als de leider zijn spelers bekijkt
+  Dan telt wim niet mee als iemand met een wachtwoord
+```
+
+Bewezen door: `tests/db/herstel.test.ts`
+
+```gherkin
+Scenario: Twee aanvragen die door elkaar lopen raken elkaars link niet kwijt
+  Gegeven dat twee leiders tegelijk om een herstellink vragen
+  Als beide aanvragen door elkaar heen lopen
+  Dan krijgt elke leider de link die bij zijn eigen speler hoort
+```
+
+Bewezen door: `tests/domein/herstel.test.ts`
+
+De twee scenario's hieronder zijn schermen, en deze repository test geen
+schermen. Ze zijn met de hand nagelopen op een lege lokale database; staat er
+ooit wel een schermtest, dan horen ze daar thuis.
 
 ```gherkin
 Scenario: Zonder mail wijst het inlogscherm naar de leider
   Gegeven dat er niet gemaild kan worden
-  Als noot op het inlogscherm om een herstellink vraagt
-  Dan leest hij dat zijn leider er een voor hem kan klaarzetten
-  En blijft het formulier zelf achterwege
+  Als noot op "Wachtwoord vergeten?" tikt
+  Dan leest hij dat zijn leider een herstellink voor hem kan klaarzetten
+  En krijgt hij geen formulier dat toch niets oplevert
 ```
 
-Bewezen door: `tests/db/herstel.test.ts`
-
-```gherkin
-Scenario: De leider zet een herstellink klaar
-  Gegeven dat mies hier een account met een wachtwoord heeft
-  Als de leider bij haar om een herstellink vraagt
-  Dan krijgt hij een link die hij kan kopiëren en doorsturen
-  En kiest mies daarmee een nieuw wachtwoord
-```
-
-Bewezen door: `tests/db/herstel.test.ts`
-
-```gherkin
-Scenario: Het formulier verraadt niet wie er in de ploeg zit
-  Gegeven dat er gemaild kan worden
-  Als iemand een adres invult dat hier niet bestaat
-  Dan leest hij hetzelfde antwoord als wanneer het wel had bestaan
-```
-
-Bewezen door: `tests/db/herstel.test.ts`
+Nagelopen met de hand.
 
 ```gherkin
 Scenario: Google op een wachtwoordaccount loopt niet dood in het Engels
   Gegeven dat wim hier een account met een wachtwoord heeft
   Als hij met Google onder datzelfde adres probeert binnen te komen
-  Dan leest hij in het Nederlands dat hij hier een wachtwoord heeft
-  En kan hij daar meteen om een herstellink vragen
+  Dan leest hij "Je hebt hier een wachtwoord" met de weg terug
+  En niet de Engelse foutpagina van Better Auth
 ```
 
-Bewezen door: `tests/db/herstel.test.ts`
+Nagelopen met de hand.
