@@ -1,0 +1,51 @@
+{
+  "name": "assist",
+  "version": "1.0.0",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "test:domein": "vitest run --project domein",
+    "test:db": "vitest run --project db",
+    "dood": "knip",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migreer.ts",
+    "seed": "tsx scripts/seed.ts",
+    "rooster": "tsx scripts/rooster.ts",
+    "roepnamen": "tsx scripts/roepnamen.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "private": "true",
+  "dependencies": {
+    "better-auth": "^1.7.2",
+    "drizzle-orm": "^0.45.2",
+    "luxon": "^3.7.2",
+    "next": "^16.3.3",
+    "postgres": "^3.4.9",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "resend": "^6.25.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/luxon": "^3.7.5",
+    "@types/node": "^26.4.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "dotenv": "^17.4.2",
+    "drizzle-kit": "^0.31.10",
+    "knip": "^6.35.1",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  },
+  "type": "module"
+}

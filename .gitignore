@@ -1,0 +1,27 @@
+node_modules/
+.next/
+.env
+.env*.local
+.vercel
+drizzle/.snapshots-tmp/
+*.log
+next-env.d.ts
+tsconfig.tsbuildinfo
+.neon
+.env*
+
+# Werkmap van subagent-driven development: grootboek en review-pakketten.
+.superpowers/
+
+# De echte ploeg. Zie scripts/seizoen.voorbeeld.json voor de vorm.
+scripts/seizoen.json
+
+# Skills van derden. Herstel met: npx skills experimental_install
+# Het recept staat in skills-lock.json.
+.claude/skills/
+.agents/
+agent/
+
+# .env.example hoort er juist wel in: hij documenteert welke variabelen
+# de app nodig heeft, en de README verwijst ernaar.
+!.env.example

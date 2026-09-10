@@ -1,0 +1,35 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+
+  // Knip kent de conventies van Next.js, vitest en drizzle-kit al: pagina's,
+  // layouts, routes, apple-icon.tsx, manifest.ts en de configbestanden vindt
+  // hij zelf. Hier staat alleen wat hij niet kan weten.
+  "entry": [
+    // Server actions worden vanuit een formulier aangeroepen, niet altijd via
+    // een import die knip kan volgen.
+    "app/acties/*.ts",
+    // Losse scripts, aangeroepen vanuit de npm-scripts in package.json.
+    "scripts/*.ts",
+    "scripts/*.tsx",
+  ],
+
+  "project": [
+    "app/**/*.{ts,tsx}",
+    "lib/**/*.{ts,tsx}",
+    "scripts/**/*.{ts,tsx}",
+  ],
+
+  // Zonder deze vlag meldt knip zo'n dertig types als ongebruikt die alleen in
+  // de handtekening van hun eigen geëxporteerde functie voorkomen —
+  // OpstellingRij, NieuweSpeler, HuidigeSpeler en de rest. Die zijn de vorm van
+  // de publieke API en dus wel degelijk in gebruik.
+  "ignoreExportsUsedInFile": true,
+
+  // Tailwind wordt niet geimporteerd door TypeScript maar door CSS: de eerste
+  // regel van app/globals.css is @import "tailwindcss". Knip volgt geen
+  // .css-imports en meldt het pakket daarom als ongebruikt. Haal je het weg,
+  // dan verliest de hele app zijn opmaak.
+  "ignoreDependencies": ["tailwindcss"],
+
+  "paths": { "@/*": ["./*"] },
+}

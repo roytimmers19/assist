@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+/*
+ * Clubblauw #3e63ae komt van de clubsite. Op zwart is dat te donker om te
+ * lezen, dus tekst en randen krijgen een opgetilde variant; de volle kleur is
+ * er voor vlakken. De grond is niet grijs maar blauwzwart, anders vloekt het.
+ */
+@theme {
+  --color-grond: #0a0f1a;
+  --color-paneel: #131c2c;
+  --color-paneel-op: #1c2739;
+  --color-rand: #26324a;
+  --color-tekst: #eef2f9;
+  --color-zacht: #93a0b8;
+  --color-club: #3e63ae;
+  --color-club-diep: #2b4680;
+  --color-club-op: #7ea3ea;
+  --color-komt: #3fbf75;
+  --color-komt-op: #7fe0ab;
+  --color-weg: #d94b49;
+  --color-weg-op: #ff9d9b;
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-grond);
+    color: var(--color-tekst);
+    font-family: var(--font-sans);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-club-op);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Rugnummers, tijden en tellingen moeten onder elkaar uitlijnen. */
+  .cijfers {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Het kleine label boven een kop: datum, groep, sectie. */
+  .bovenkop {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  /* De tegenstander, de tijd, het aantal: breed en zwaar, als op een bord. */
+  .uithangbord {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-stretch: 115%;
+    letter-spacing: -0.015em;
+    line-height: 0.95;
+  }
+
+  .kopregel {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-stretch: 105%;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Eén beweging, bij het openen: het blok komt op. Verder niets. */
+@keyframes opkomen {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.opkomen {
+  animation: opkomen 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}

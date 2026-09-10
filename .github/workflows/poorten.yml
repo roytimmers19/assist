@@ -1,0 +1,105 @@
+---
+name: Poorten
+
+on: # yamllint disable-line rule:truthy
+  push: null
+  pull_request: null
+
+permissions: {}
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: read
+      statuses: write
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Super-linter
+        uses: super-linter/super-linter@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Op een pull request alleen wat er veranderde; op master alles.
+          VALIDATE_ALL_CODEBASE: ${{ github.event_name != 'pull_request' }}
+          # De meegeleverde skill-mappen zijn niet van ons en zijn te groot.
+          # drizzle/ is gegenereerd door drizzle-kit en wordt nooit met de hand
+          # aangepast — een migratie hoort onaangeroerd te blijven eens ze is
+          # gegenereerd, dus laten we die niet meestijlen.
+          FILTER_REGEX_EXCLUDE: '.*(\.claude/|\.agents/|agent/|drizzle/).*'
+          # Er is geen eigen ESLint/Prettier-config voor de TypeScript-code.
+          # De standaardconfig van super-linter kent het pad-alias `@/...` en
+          # React 19's automatische JSX-runtime niet (valse `no-missing-import`
+          # en `react-in-jsx-scope`-meldingen op vrijwel elk bestand), en de
+          # projectstijl gebruikt bewust geen puntkomma's — Prettier zou dat
+          # in alle bestanden overschrijven. TYPESCRIPT_STANDARD loopt zelfs
+          # vast op een heap-overflow. `npx tsc --noEmit` in de controle-baan
+          # bewaakt de TypeScript-correctheid al; een eigen ESLint-opzet is een
+          # aparte beslissing die buiten deze taak valt.
+          VALIDATE_TSX: false
+          VALIDATE_TYPESCRIPT_ES: false
+          VALIDATE_TYPESCRIPT_STANDARD: false
+          VALIDATE_TYPESCRIPT_PRETTIER: false
+
+  controle:
+    name: controle
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    services:
+      postgres:
+        # Zelfde hoofdversie als docker-compose.test.yml en als Neon.
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: kleedkamer
+          POSTGRES_PASSWORD: kleedkamer
+          POSTGRES_DB: kleedkamer_test
+        ports:
+          - 54329:5432
+        options: >-
+          --health-cmd "pg_isready -U kleedkamer"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      DATABASE_URL_TEST: postgres://kleedkamer:kleedkamer@localhost:54329/kleedkamer_test
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Node opzetten
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Pakketten installeren
+        run: npm ci
+
+      # Van goedkoop naar duur: een typefout stopt de baan voordat er een
+      # database aan te pas komt.
+      - name: Typecontrole
+        run: npx tsc --noEmit
+
+      - name: Dode code zoeken
+        run: npm run dood
+
+      - name: Tests zonder database
+        run: npm run test:domein
+
+      - name: Tests met database
+        run: npm run test:db

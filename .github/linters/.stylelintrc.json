@@ -1,0 +1,22 @@
+{
+  "extends": "stylelint-config-standard",
+  "rules": {
+    "import-notation": "string",
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": [
+          "theme",
+          "apply",
+          "layer",
+          "config",
+          "plugin",
+          "reference",
+          "utility",
+          "variant",
+          "custom-variant"
+        ]
+      }
+    ]
+  }
+}

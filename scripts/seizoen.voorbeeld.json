@@ -1,0 +1,30 @@
+{
+  "seizoen": { "van": "2000-08-01", "tot": "2001-07-31" },
+  "materiaalduos": [
+    ["Aap", "Noot"],
+    ["Mies", "Wim"],
+    ["Zus", "Jet"]
+  ],
+  "rijdatums": [
+    { "datum": "2026-09-13", "rijders": ["Aap", "Noot", "Mies", "Zus"] },
+    { "datum": "2026-09-20", "rijders": ["Zus", "Jet", "Aap", "Noot"] }
+  ],
+  "roepnamen": {
+    "Aap": "Aap Achternaam",
+    "Noot": "Noot Achternaam",
+    "Mies": "Mies Achternaam",
+    "Wim": "Wim Achternaam",
+    "Zus": "Zus Achternaam",
+    "Jet": null
+  },
+  "steekproef": {
+    "duoVanWeek": [
+      { "week": 1, "duo": ["Aap", "Noot"] },
+      { "week": 2, "duo": ["Mies", "Wim"] },
+      { "week": 3, "duo": ["Zus", "Jet"] },
+      { "week": 4, "duo": ["Aap", "Noot"] }
+    ],
+    "materiaalZonderRij": "Wim",
+    "nogGeenLid": "Jet"
+  }
+}

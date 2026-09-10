@@ -1,0 +1,1 @@
+ALTER TABLE "team_instelling" ADD COLUMN "automatisch_toelaten_tot" timestamp with time zone;

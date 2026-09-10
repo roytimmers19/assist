@@ -1,0 +1,29 @@
+---
+name: Werk
+description: Iets dat anders moet in Assist
+body:
+  - type: textarea
+    id: wat
+    attributes:
+      label: Wat moet er anders?
+      description: In gewone taal. Wat je nu ziet, en wat je zou willen zien.
+    validations:
+      required: true
+
+  - type: textarea
+    id: klaar
+    attributes:
+      label: Hoe weet je dat het werkt?
+      description: >-
+        Waar kijk je naar om te zien dat het klopt? Dit wordt de maatstaf
+        waar de PR straks tegenaan gelegd wordt.
+    validations:
+      required: true
+
+  - type: textarea
+    id: waarom
+    attributes:
+      label: Waarom nu?
+      description: Wat er misgaat zolang dit blijft liggen.
+    validations:
+      required: false
