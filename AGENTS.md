@@ -47,11 +47,16 @@ en `wim`.
 
 ## Werkwijze
 
-Eén issue, één PR, één commit op `master`. De PR begint als concept met alleen
-het ontwerp; pas na akkoord komt er code in. Verandert gedrag, dan verandert
-`specs/<domein>/spec.md` mee in dezelfde PR. Heeft het domein nog geen spec,
-dan schrijf je die in diezelfde conceptfase, vóór de code, en de eigenaar
-keurt hem daar goed.
+Eén issue, één PR. De PR begint als concept met alleen het ontwerp; pas na
+akkoord komt er code in. Verandert gedrag, dan verandert `specs/<domein>/spec.md`
+mee in dezelfde PR. Heeft het domein nog geen spec, dan schrijf je die in
+diezelfde conceptfase, vóór de code, en de eigenaar keurt hem daar goed.
+
+Een PR gaat naar `staging`, niet rechtstreeks naar `master`. Daar draait de
+testomgeving op <https://teamassist-staging.vercel.app>, tegen een kopie van de
+productiedatabase — wat daar staat is dus nog niet van het team. Pas wat het
+daar uithoudt gaat als één commit naar `master`, en dat is
+<https://teamassist.vercel.app>: de app die de ploeg openslaat.
 
 ## Vraag eerst
 
