@@ -65,6 +65,32 @@ describe('een herstellink voor wie zijn wachtwoord kwijt is', () => {
   })
 })
 
+describe('een herstel sluit de oude sessies af', () => {
+  beforeEach(async () => {
+    await maakSchoon()
+    await testDb.execute(sql`truncate table "user" cascade`)
+  })
+
+  it('gooit bestaande sessies eruit zodra het wachtwoord hersteld is', async () => {
+    await maakWachtwoordAccount('wim@voorbeeld.nl', 'eerste-wachtwoord')
+    await auth.api.signInEmail({
+      body: { email: 'wim@voorbeeld.nl', password: 'eerste-wachtwoord' },
+    })
+    // Aanmelden logt zelf al in, dus hoeveel het er zijn doet er niet toe;
+    // dat het er méér dan nul zijn is wat dit scenario nodig heeft.
+    const [voor] = await testDb.execute(sql`select count(*)::int as aantal from session`)
+    expect((voor as { aantal: number }).aantal).toBeGreaterThan(0)
+
+    const link = await vraagHerstellink('wim@voorbeeld.nl')
+    await auth.api.resetPassword({
+      body: { newPassword: 'tweede-wachtwoord', token: tokenUit(link as string) },
+    })
+
+    const [na] = await testDb.execute(sql`select count(*)::int as aantal from session`)
+    expect((na as { aantal: number }).aantal).toBe(0)
+  })
+})
+
 describe('wie hier een wachtwoord heeft', () => {
   beforeEach(async () => {
     await maakSchoon()

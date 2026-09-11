@@ -36,6 +36,10 @@ mag nooit zijn dat iemand met de hand in de productiedatabase gaat.
     geen eigen naast.
   - Alles wat een speler leest staat er in het Nederlands, ook wat Better Auth
     zelf zou tonen.
+  - Een herstellink werkt voor wie hem heeft. Met mail is dat de speler zelf;
+    zonder mail is dat de leider, en daarmee kan hij als die speler binnenkomen.
+    Dat is bewust betaald: de leider voegt spelers toe, keurt ze goed en maakt
+    uitnodigingen, dus hij beheert die accounts toch al.
 
 ## Contract
 
@@ -67,6 +71,9 @@ mag nooit zijn dat iemand met de hand in de productiedatabase gaat.
 - De leider ziet een herstellink bij de spelers waar hij betekenis heeft: die
   met een wachtwoord. Bij een Google-account is er geen wachtwoord om te
   herstellen.
+- Een herstel sluit elke lopende sessie van dat account af. Een overname via
+  een herstellink is daarmee niet tegengehouden, maar wel te merken: de speler
+  vliegt eruit en moet opnieuw inloggen.
 - De databasetests draaien nooit tegen iets anders dan de testdatabase.
   `tests/db/opzet.ts` zet `DATABASE_URL` gelijk aan `DATABASE_URL_TEST` voordat
   Better Auth geladen wordt, want die pakt zijn verbinding uit de eerste.
@@ -97,6 +104,16 @@ Bewezen door: `tests/db/herstel.test.ts`
 Scenario: Een adres dat hier niet bestaat levert geen link
   Als er om een herstellink wordt gevraagd voor mies, die hier geen account heeft
   Dan komt er geen link
+```
+
+Bewezen door: `tests/db/herstel.test.ts`
+
+```gherkin
+Scenario: Een herstel sluit de oude sessies af
+  Gegeven dat wim ergens ingelogd is
+  Als zijn wachtwoord via een herstellink wordt gezet
+  Dan is die sessie afgesloten
+  En moet hij opnieuw inloggen
 ```
 
 Bewezen door: `tests/db/herstel.test.ts`
