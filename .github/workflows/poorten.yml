@@ -23,14 +23,13 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Super-linter
         uses: super-linter/super-linter@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Op een pull request alleen wat er veranderde; op master alles.
-          VALIDATE_ALL_CODEBASE: ${{ github.event_name != 'pull_request' }}
+          # Altijd alles; voor een diff vindt super-linter geen vertrekpunt.
+          VALIDATE_ALL_CODEBASE: true
           # De meegeleverde skill-mappen zijn niet van ons en zijn te groot.
           # drizzle/ is gegenereerd door drizzle-kit en wordt nooit met de hand
           # aangepast — een migratie hoort onaangeroerd te blijven eens ze is
