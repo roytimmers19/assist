@@ -14,11 +14,13 @@ import {
 } from '@/app/acties/spelers'
 import { Knop } from '@/app/_onderdelen/Knop'
 import { Schil } from '@/app/_onderdelen/Schil'
+import { HerstellinkKnop } from '@/app/leider/_onderdelen/HerstellinkKnop'
 import { KopieerKnop } from '@/app/leider/_onderdelen/KopieerKnop'
 import { vereisLeider } from '@/lib/auth/sessie'
 import { leesLopendeAfwezigheden } from '@/lib/db/afwezigheid'
 import { db } from '@/lib/db/client'
 import { leesTeamInstelling } from '@/lib/db/instellingen'
+import { leesWachtwoordGebruikers } from '@/lib/db/toegang'
 import { mailWerkt } from '@/lib/mail/verstuur'
 import { deurStaatOpen } from '@/lib/domein/toelating'
 import { leesAlleSpelers } from '@/lib/db/spelers'
@@ -50,9 +52,10 @@ export default async function Spelersbeheer({
   const leider = await vereisLeider()
   const { fout, nr } = await searchParams
   const verbinding = db()
-  const [alle, instelling] = await Promise.all([
+  const [alle, instelling, metWachtwoord] = await Promise.all([
     leesAlleSpelers(verbinding),
     leesTeamInstelling(verbinding),
+    leesWachtwoordGebruikers(verbinding),
   ])
 
   const wachtend = alle.filter((s) => s.accountStatus === 'wacht_op_goedkeuring')
@@ -393,6 +396,9 @@ export default async function Spelersbeheer({
                         <input type="hidden" name="naam" value={speler.naam} />
                         <button className={kleineKnop}>Opnieuw uitnodigen</button>
                       </form>
+                    )}
+                    {speler.gebruikerId && metWachtwoord.has(speler.gebruikerId) && (
+                      <HerstellinkKnop spelerId={speler.id} naam={speler.naam} />
                     )}
                     <form action={wisselActief}>
                       <input type="hidden" name="spelerId" value={speler.id} />
