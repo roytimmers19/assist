@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { db } from '@/lib/db/client'
 import { verstuurMail } from '@/lib/mail/verstuur'
+import { biedHerstellinkAan } from './herstel'
 import { APPNAAM } from '@/lib/weergave/namen'
 
 export const auth = betterAuth({
@@ -11,7 +12,17 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
+    // Wie zijn wachtwoord herstelt, doet dat meestal omdat hij het kwijt is of
+    // omdat hij het vertrouwde niet meer. Dan hoort er nergens nog een sessie
+    // open te staan. Het maakt ook zichtbaar dat er iets gebeurd is: een
+    // herstellink werkt voor wie hem heeft, en de leider heeft hem ook.
+    revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
+      // Vroeg de leider erom, dan gaat de link naar hem terug om door te
+      // sturen. Vroeg de speler er zelf om, dan staat er niemand klaar en
+      // gaat hij de deur uit.
+      if (biedHerstellinkAan(url)) return
+
       await verstuurMail({
         aan: user.email,
         onderwerp: `Nieuw wachtwoord voor ${APPNAAM}`,
@@ -19,6 +30,10 @@ export const auth = betterAuth({
       })
     },
   },
+  // Better Auth stuurt mislukte aanmeldingen anders naar zijn eigen Engelse
+  // foutpagina, met een knop "Ask AI". Een speler hoort in het Nederlands te
+  // lezen wat er aan de hand is.
+  onAPIError: { errorURL: '/toegang-mislukt' },
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,

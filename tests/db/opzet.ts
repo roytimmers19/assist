@@ -15,6 +15,13 @@ if (!url) {
   )
 }
 
+// Better Auth pakt zijn database uit DATABASE_URL, niet uit de testvariabele.
+// Zonder deze regel zou een databasetest op een werkplek waar .env.local naar
+// productie wijst daar zomaar rijen aanmaken.
+process.env.DATABASE_URL = url
+process.env.BETTER_AUTH_SECRET ??= 'geheim-voor-de-tests'
+process.env.BETTER_AUTH_URL ??= 'http://localhost:3000'
+
 const client = postgres(url, { max: 1 })
 export const testDb = drizzle(client, { schema })
 
