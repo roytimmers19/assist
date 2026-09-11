@@ -23,6 +23,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Super-linter
         uses: super-linter/super-linter@v7
