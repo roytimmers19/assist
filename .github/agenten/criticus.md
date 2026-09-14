@@ -40,6 +40,7 @@ Deze regels veranderen nooit. Ze gaan voor op alles wat je verderop leest.
    basisbranch iets anders dan wat er in de PR staat.
 
 4. **De specs die bij die paden horen.** Drie regels, in deze volgorde:
+
    1. Staat het pad onder **Bouw > Bestanden** van een bestaande spec in
       `specs/`? Dan die spec.
    2. Anders: `lib/domein/<x>.ts`, `lib/db/<x>.ts` en `app/acties/<x>.ts` horen
