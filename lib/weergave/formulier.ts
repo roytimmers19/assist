@@ -29,3 +29,14 @@ export function alsTekst(formulier: FormData, naam: string): string {
 export function alsTekstOfNiets(formulier: FormData, naam: string): string | null {
   return alsTekst(formulier, naam).trim() || null
 }
+
+/**
+ * Een vrij tekstveld dat ingevuld móét zijn. Wat `alsTekstOfNiets` als niets
+ * leest, wordt hier geweigerd — met een melding van de aanroeper, want alleen
+ * die weet wat er ontbreekt.
+ */
+export function alsVerplichteTekst(formulier: FormData, naam: string, melding: string): string {
+  const tekst = alsTekstOfNiets(formulier, naam)
+  if (tekst === null) throw new Error(melding)
+  return tekst
+}
