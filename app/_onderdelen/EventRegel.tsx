@@ -61,7 +61,8 @@ export function EventRegel({
             <input type="hidden" name="eventId" value={event.id} />
             <input
               name="toelichting"
-              placeholder="Reden (mag je overslaan)"
+              placeholder="Waarom kun je niet?"
+              required
               className="min-h-11 rounded-xl border border-rand bg-paneel-op px-4 text-sm placeholder:text-zacht/70"
             />
             <Knop toon="omlijnd">Ik kan niet</Knop>
