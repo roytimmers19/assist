@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { alsTekst, alsTekstOfNiets, alsVinkje } from '@/lib/weergave/formulier'
+import { alsTekst, alsTekstOfNiets, alsVerplichteTekst, alsVinkje } from '@/lib/weergave/formulier'
 
 /**
  * Een formulier zoals een browser het opstuurt: een aangevinkt vakje levert
@@ -74,5 +74,25 @@ describe('alsTekstOfNiets', () => {
 
   it('geeft niets als het veld ontbreekt', () => {
     expect(alsTekstOfNiets(new FormData(), 'toelichting')).toBeNull()
+  })
+})
+
+describe('alsVerplichteTekst', () => {
+  const melding = 'Vul in waarom je niet kunt.'
+
+  it('geeft de getrimde waarde', () => {
+    const formulier = new FormData()
+    formulier.set('toelichting', '  rug  ')
+    expect(alsVerplichteTekst(formulier, 'toelichting', melding)).toBe('rug')
+  })
+
+  it('weigert een veld met alleen spaties met de meegegeven melding', () => {
+    const formulier = new FormData()
+    formulier.set('toelichting', '   ')
+    expect(() => alsVerplichteTekst(formulier, 'toelichting', melding)).toThrow(melding)
+  })
+
+  it('weigert een ontbrekend veld', () => {
+    expect(() => alsVerplichteTekst(new FormData(), 'toelichting', melding)).toThrow(melding)
   })
 })
