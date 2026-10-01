@@ -58,6 +58,12 @@ productiedatabase — wat daar staat is dus nog niet van het team. Pas wat het
 daar uithoudt gaat als één commit naar `master`, en dat is
 <https://teamassist.vercel.app>: de app die de ploeg openslaat.
 
+Merg die pull requests met een squash. Daarmee blijft de historie van `staging`
+één rechte lijn, en dat is geen smaakkwestie: de lintbaan zoekt zijn
+vergelijkpunt door net zoveel commits terug te lopen als de pull request telt.
+Een merge-commit telt wel mee maar verlengt die lijn niet, en dan valt hij om op
+een commit die niet bestaat.
+
 ## Vraag eerst
 
 - Vóór een migratie tegen de productiedatabase
