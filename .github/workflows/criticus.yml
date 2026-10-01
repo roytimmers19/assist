@@ -1,0 +1,66 @@
+---
+name: Criticus
+
+# Leest een PR tegen spec en AGENTS.md, en adviseert. Blokkeert nooit: de
+# baan Poorten is het enige dat een merge tegenhoudt. De instructie staat in
+# .github/agenten/criticus.md; lokaal draait hij met
+# claude -p "$(cat .github/agenten/criticus.md)".
+
+on: # yamllint disable-line rule:truthy
+  pull_request:
+    types: [labeled, synchronize]
+
+permissions: {}
+
+jobs:
+  criticus:
+    name: criticus
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Alleen met het label criticus: het zetten ervan start hem, en zolang het
+    # blijft staan leest hij elke nieuwe push opnieuw.
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'criticus')
+      || (github.event.action == 'synchronize'
+      && contains(github.event.pull_request.labels.*.name, 'criticus'))
+
+    # Op baanniveau, zodat een overgeslagen run om een ander label de lopende
+    # niet afbreekt. Drie pushes vlak na elkaar leveren één oordeel op.
+    concurrency:
+      group: criticus-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: write
+
+    steps:
+      - name: Code ophalen
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Node opzetten
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Criticus lezen laten
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        # Hij leest de repository, vraagt via gh de PR en het issue op, en
+        # schrijft alleen zijn oordeel. Herstellen kan hij niet: Edit staat er
+        # niet bij, en Write alleen omdat het oordeel naar $RUNNER_TEMP gaat.
+        run: |
+          opdracht="$(cat .github/agenten/criticus.md)"$'\n\n'"Je leest PR #$PR."
+          npx -y @anthropic-ai/claude-code@2.1.286 \
+            -p "$opdracht" \
+            --add-dir "$RUNNER_TEMP" \
+            --allowedTools \
+              "Read" "Glob" "Grep" "Write" \
+              "Bash(gh pr view:*)" "Bash(gh pr diff:*)" "Bash(gh issue view:*)" \
+              "Bash(gh pr comment:*)" "Bash(gh pr edit:*)"
