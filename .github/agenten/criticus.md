@@ -175,6 +175,16 @@ Is het dat niet, haal het label dan weg als het er staat:
 gh pr edit "$PR" --remove-label "criticus: afgekeurd"
 ```
 
+## Wanneer je draait
+
+Alleen op een PR met het label `criticus`. Zet de eigenaar dat label erop, dan
+lees je de PR meteen. Zolang het blijft staan, lees je hem na elke nieuwe push
+opnieuw. Haalt hij het weg, dan lees je niet meer mee. Een PR zonder dat label
+bestaat voor jou niet.
+
+Dat label is van de eigenaar. Je zet het niet en je haalt het niet weg; het
+enige label dat jij aanraakt is `criticus: afgekeurd`.
+
 ## Zo weet je dat deze baan werkt
 
 Deze scenario's zijn niet met vitest te bewijzen — dit is een baan, geen
@@ -207,11 +217,36 @@ Scenario: Een afgekeurde PR blijft te mergen
 ```
 
 ```gherkin
+Scenario: Zonder label leest hij niet mee
+  Gegeven een PR zonder het label criticus
+  Als er naar die PR gepusht wordt
+  Dan draait de criticus niet
+  En staat er geen reactie van hem
+```
+
+```gherkin
+Scenario: Het label zetten start hem
+  Gegeven een PR zonder het label criticus
+  Als de eigenaar het label criticus zet
+  Dan leest de criticus de PR
+  En staat zijn oordeel er als reactie
+```
+
+```gherkin
 Scenario: Een tweede push vervangt het oordeel
-  Gegeven een PR waar de criticus al een reactie op heeft geplaatst
+  Gegeven een PR met het label criticus, waar de criticus al een reactie op
+    heeft geplaatst
   Als er opnieuw naar die PR gepusht wordt
   Dan staat er nog steeds één reactie van de criticus
   En toont die het oordeel van nu
+```
+
+```gherkin
+Scenario: Het label weghalen stopt hem
+  Gegeven een PR waar de eigenaar het label criticus weer af heeft gehaald
+  Als er opnieuw naar die PR gepusht wordt
+  Dan draait de criticus niet
+  En blijft zijn laatste reactie staan zoals hij was
 ```
 
 ```gherkin
