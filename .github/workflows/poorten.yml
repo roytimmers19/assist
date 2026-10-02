@@ -1,9 +1,12 @@
 ---
 name: Poorten
 
+# Alleen bij een push. Een PR leest de uitslag van zijn laatste commit, want
+# een verplichte controle geldt per commit. In een PR-run telt super-linter
+# zijn vergelijkpunt uit de commits van de PR, en die telling klopt niet als
+# er merge-commits in de geschiedenis staan.
 on: # yamllint disable-line rule:truthy
   push: null
-  pull_request: null
 
 permissions: {}
 
