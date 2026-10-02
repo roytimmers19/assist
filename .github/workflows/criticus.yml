@@ -57,15 +57,27 @@ jobs:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
-        # Schrijven mag alleen onder $RUNNER_TEMP; de dubbele slash maakt het
-        # pad absoluut. De gh-opdrachten lezen alleen, en de sleutel kan ook
-        # niets anders.
+        # Wat hij mag, staat hier en nergens anders:
+        # --restricted    alleen de gereedschappen uit --tools, lezen en
+        #                 schrijven alleen in de werkmap en $RUNNER_TEMP, en
+        #                 geen settings uit de PR (dus ook geen hooks)
+        # --strict-mcp-config  geen MCP-servers, ook niet uit de PR
+        # dontAsk         wat niet in --allowedTools staat wordt geweigerd,
+        #                 niet beoordeeld
+        # --allowedTools  schrijven alleen onder $RUNNER_TEMP (de dubbele
+        #                 slash maakt het pad absoluut) en drie gh-opdrachten
+        #                 die lezen; de sleutel kan ook niets anders
         run: |
           opdracht="$(cat .github/agenten/criticus.md)"$'\n\n'"Je leest PR #$PR."
+          opdracht+=" Je schrijft je oordeel naar $RUNNER_TEMP/oordeel.md."
           npx -y @anthropic-ai/claude-code@2.1.286 \
             -p "$opdracht" \
             --model opus \
+            --restricted \
+            --strict-mcp-config \
+            --permission-mode dontAsk \
             --add-dir "$RUNNER_TEMP" \
+            --tools "Read,Glob,Grep,Write,Bash" \
             --allowedTools \
               "Read" "Glob" "Grep" "Edit(/$RUNNER_TEMP/**)" \
               "Bash(gh pr view:*)" "Bash(gh pr diff:*)" "Bash(gh issue view:*)"
