@@ -55,7 +55,9 @@ kun je niet bereiken.
 De baan zet je verfijning onder het merkteken `<!-- verfijning -->` en vervangt
 bij een volgende run alles daaronder. Schrijft een agent in een sessie een
 verfijning met de hand, dan zet hij datzelfde merkteken op de regel erboven;
-anders komt er bij jouw eerste run een tweede kop _Verfijning_ bij.
+anders komt er bij jouw eerste run een tweede kop _Verfijning_ bij. Alleen het
+laatste merkteken buiten een codeblok telt. Noem je het merkteken zelf in je
+verfijning, dan alleen in een codeblok; een kaal merkteken weigert de baan.
 
 ## Wat je teruggeeft
 
@@ -174,6 +176,14 @@ Scenario: Na het akkoord laat hij het issue met rust
   Gegeven een issue met het label oppakken
   Als de eigenaar het issue bewerkt of erop reageert
   Dan draait de verfijner niet
+```
+
+```gherkin
+Scenario: Een geciteerd merkteken knipt niets weg
+  Gegeven een issue waarin de eigenaar het merkteken in een codeblok citeert
+  Als de verfijner twee keer draait
+  Dan staat alles wat de eigenaar schreef er nog, ook wat onder dat citaat staat
+  En is er nog steeds één kop Verfijning van de verfijner
 ```
 
 ```gherkin

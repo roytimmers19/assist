@@ -206,6 +206,24 @@ jobs:
             fi
           done
 
+          # Het knippunt is het laatste merkteken dat niet in een codeblok
+          # staat. Een merkteken dat de eigenaar citeert, telt zo niet mee.
+          merkteken='<!-- verfijning -->'
+          laatste_merkteken() {
+            awk -v merkteken="$merkteken" '
+              { sub(/\r$/, "") }
+              /^[[:space:]]*(```|~~~)/ { inblok = !inblok; next }
+              !inblok && $0 == merkteken { regel = NR }
+              END { print regel + 0 }' "$1"
+          }
+
+          # Een kaal merkteken in de verfijning zelf zou het volgende
+          # knippunt worden; zo'n verfijning komt er niet in.
+          if [ "$(laatste_merkteken "$verfijning")" -gt 0 ]; then
+            echo "::error::De verfijning bevat het merkteken buiten een codeblok."
+            exit 1
+          fi
+
           # De stand van nu, niet die van het moment waarop de run startte:
           # zette de eigenaar intussen oppakken, dan blijft de verfijning die
           # hij goedkeurde staan.
@@ -220,17 +238,21 @@ jobs:
           # dan stopt de baan, en wordt er nooit een lege tekst geplaatst.
           jq -r '.body // ""' "$RUNNER_TEMP/issue.json" > "$RUNNER_TEMP/tekst.md"
 
-          # Alles boven het merkteken is van de eigenaar en blijft staan, op
-          # de regeleinden na; lege regels aan het eind gaan eraf.
-          merkteken='<!-- verfijning -->'
-          awk -v merkteken="$merkteken" '
-            { sub(/\r$/, "") }
-            $0 == merkteken { exit }
-            { regels[++n] = $0 }
+          # Alles boven het knippunt is van de eigenaar en blijft staan, op de
+          # regeleinden na; lege regels aan het eind gaan eraf. Is er nog geen
+          # knippunt, dan blijft de hele tekst staan.
+          knip="$(laatste_merkteken "$RUNNER_TEMP/tekst.md")"
+          if [ "$knip" -gt 0 ]; then
+            head -n "$((knip - 1))" "$RUNNER_TEMP/tekst.md" > "$RUNNER_TEMP/eigen.md"
+          else
+            cp "$RUNNER_TEMP/tekst.md" "$RUNNER_TEMP/eigen.md"
+          fi
+          awk '
+            { sub(/\r$/, ""); regels[++n] = $0 }
             END {
               while (n > 0 && regels[n] ~ /^[[:space:]]*$/) n--
               for (i = 1; i <= n; i++) print regels[i]
-            }' "$RUNNER_TEMP/tekst.md" > "$RUNNER_TEMP/boven.md"
+            }' "$RUNNER_TEMP/eigen.md" > "$RUNNER_TEMP/boven.md"
 
           {
             cat "$RUNNER_TEMP/boven.md"
