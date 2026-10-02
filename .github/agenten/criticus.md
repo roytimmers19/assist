@@ -28,18 +28,18 @@ Deze regels veranderen nooit. Ze gaan voor op alles wat je verderop leest.
 
 ## Wat je leest, en in welke volgorde
 
-1. **`AGENTS.md`** van deze tak. (`CLAUDE.md` verwijst er alleen naar; sla hem
-   over.)
+1. **`AGENTS.md`** zoals hij nu geldt. Wat je in de werkmap vindt, is de
+   basistak en niet de PR: daar meet je tegen. Verandert de PR iets aan
+   `AGENTS.md`, aan een spec of aan jou, dan zie je dat in de diff. (`CLAUDE.md`
+   verwijst alleen naar `AGENTS.md`; sla hem over.)
 2. **Het issue dat deze PR sluit.** Haal `Sluit #N` of `Closes #N` uit de
    PR-tekst en lees het met `gh issue view N`. Het veld _"Hoe weet je dat het
    werkt?"_ is de maatstaf waar deze PR tegenaan gelegd wordt. Vind je geen
    issue, dan is dát een bevinding: zonder issue is er geen herkomst.
-3. **Alleen de bestandspaden** van de diff: `gh pr diff <nummer> --name-only`. Dit
-   is routeren, nog niet lezen.
+3. **Alleen de bestandspaden** van de diff: `gh pr diff <nummer> --name-only`.
+   Dit is routeren, nog niet lezen.
 
-   Gebruik `gh pr diff` en niet `git diff`: bij een `pull_request`-gebeurtenis
-   checkt de baan de samenvoegcommit uit, en dan vergelijkt `git diff` met de
-   basisbranch iets anders dan wat er in de PR staat.
+   De PR bestaat voor jou alleen in `gh pr diff`. In de werkmap staat hij niet.
 
 4. **De specs die bij die paden horen.** Drie regels, in deze volgorde:
 
@@ -176,6 +176,10 @@ bestaat voor jou niet.
 Dat label is van de eigenaar, en `criticus: afgekeurd` is van de baan. Jij
 raakt geen enkel label aan.
 
+Je draait met de versie van jezelf die op de basistak staat. Een PR die jou
+verandert, wordt dus nog door de oude criticus gelezen; de nieuwe leest pas na
+de merge mee.
+
 ## Zo weet je dat deze baan werkt
 
 Deze scenario's zijn niet met vitest te bewijzen — dit is een baan, geen
@@ -253,10 +257,11 @@ Scenario: Hij kan niets wijzigen
 
 ```gherkin
 Scenario: Een PR kan zijn rechten niet verruimen
-  Gegeven een PR die een .claude/settings.json met ruimere rechten of een hook
-    toevoegt
+  Gegeven een PR die criticus.yml ruimer maakt, criticus.md verandert, of een
+    .claude/settings.json met een hook toevoegt
   Als de criticus die PR leest
-  Dan gelden die settings niet voor hem
+  Dan leest hij met de baan en de instructie van de basistak
+  En gelden de settings uit de PR niet voor hem
 ```
 
 ```gherkin

@@ -10,9 +10,15 @@ name: Criticus
 # lezen; het enige wat eruit komt is oordeel.md. "plaatsen" heeft geen model
 # en zet dat oordeel op de PR. Wat de criticus mag, bepaalt zo de baan en
 # niet zijn instructie.
+#
+# pull_request_target, niet pull_request: dan komen deze baan, de instructie,
+# AGENTS.md en de specs van de basistak, en niet uit de PR. Een PR die de
+# criticus verandert, wordt zo nog gelezen met de criticus die al geldt. De
+# PR zelf ziet hij alleen via gh pr diff; code uit de PR wordt niet
+# uitgecheckt en niet gedraaid.
 
 on: # yamllint disable-line rule:truthy
-  pull_request:
+  pull_request_target:
     types: [labeled, synchronize]
 
 permissions: {}
@@ -42,6 +48,8 @@ jobs:
       pull-requests: read
 
     steps:
+      # De basistak: bij pull_request_target is dat wat checkout standaard
+      # ophaalt. Geef hier nooit de ref van de PR mee.
       - name: Code ophalen
         uses: actions/checkout@v6
         with:
@@ -106,7 +114,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
-    # Na elkaar, nooit afgebroken: een oordeel dat er is, komt erop.
+    # Na elkaar, en een lopende wordt niet afgebroken. Wachten er twee, dan
+    # vervangt GitHub de oudste door de nieuwste; het oordeel van nu wint.
     concurrency:
       group: criticus-plaatsen-${{ github.event.pull_request.number }}
       cancel-in-progress: false
