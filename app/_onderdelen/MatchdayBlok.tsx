@@ -95,7 +95,8 @@ export function MatchdayBlok({
                 <input type="hidden" name="eventId" value={event.id} />
                 <input
                   name="toelichting"
-                  placeholder="Reden (mag je overslaan)"
+                  placeholder="Waarom kun je niet?"
+                  required
                   className="min-h-11 rounded-xl border border-white/25 bg-white/10 px-4 text-sm text-white placeholder:text-white/65"
                 />
                 <Knop toon="opblauw">Ik kan niet</Knop>

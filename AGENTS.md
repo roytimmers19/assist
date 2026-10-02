@@ -47,16 +47,31 @@ en `wim`.
 
 ## Werkwijze
 
-Eén issue, één PR. De PR begint als concept met alleen het ontwerp; pas na
-akkoord komt er code in. Verandert gedrag, dan verandert `specs/<domein>/spec.md`
-mee in dezelfde PR. Heeft het domein nog geen spec, dan schrijf je die in
-diezelfde conceptfase, vóór de code, en de eigenaar keurt hem daar goed.
+Eén issue, één PR. Elk issue loopt langs vier poorten, en bij elke poort
+beslist de eigenaar. Wat ertussen gebeurt doet een agent: een eigen baan als
+die er al is, anders een agent in een sessie met de eigenaar.
 
-Een PR gaat naar `staging`, niet rechtstreeks naar `master`. Daar draait de
-testomgeving op <https://teamassist-staging.vercel.app>, tegen een kopie van de
-productiedatabase — wat daar staat is dus nog niet van het team. Pas wat het
-daar uithoudt gaat als één commit naar `master`, en dat is
-<https://teamassist.vercel.app>: de app die de ploeg openslaat.
+| Stap      | Wie                 | Wat er gebeurt                                                             | Poort: de eigenaar                             |
+| --------- | ------------------- | -------------------------------------------------------------------------- | ---------------------------------------------- |
+| Verfijnen | agent in een sessie | Werking en uitstraling onder de kop _Verfijning_ in het issue              | label `oppakken`, of sluiten als _not planned_ |
+| Ontwerpen | agent in een sessie | Concept-PR naar `staging`: de spec in de diff, het bouwplan in de PR-tekst | label `bouwen` op de PR                        |
+| Bouwen    | agent in een sessie | Tests en code volgens het bouwplan; `Poorten` controleert                  | squash naar `staging`                          |
+| Uitrollen | agent in een sessie | Wat het op `staging` uithoudt gaat als één commit naar `master`            | merge naar `master`                            |
+
+Verandert gedrag, dan verandert `specs/<domein>/spec.md` mee in dezelfde PR.
+Heeft het domein nog geen spec, dan schrijft de ontwerpstap hem, vóór de code.
+Ook een bugfix begint met een ontwerp zodra hij iets nieuws vastlegt: een
+gedeelde functie of een kernregel.
+
+In de repository staat wat blijft gelden: `AGENTS.md` en de specs. Een bouwplan
+staat in de PR-tekst, een verslag nergens. Wat in de repository staat wordt
+gelezen als geldende afspraak, en een afgesloten plan is dat niet.
+
+`staging` is de testomgeving op <https://teamassist-staging.vercel.app>, tegen
+een kopie van de productiedatabase — wat daar staat is dus nog niet van het
+team. `master` is <https://teamassist.vercel.app>: de app die de ploeg
+openslaat. Een issue gaat pas dicht als zijn werk op `master` staat. `Sluit #N`
+in een PR legt de herkomst vast, maar sluit niets.
 
 ## Vraag eerst
 
