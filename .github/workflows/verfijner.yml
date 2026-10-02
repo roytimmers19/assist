@@ -71,8 +71,9 @@ jobs:
           mkdir -p "$werk"
 
           # De laatste bewerking door de eigenaar zelf, uit de geschiedenis:
-          # de bewerkingen van de baan tellen niet mee. De $-namen in de query
-          # zijn GraphQL-variabelen, geen shell.
+          # de bewerkingen van de baan tellen niet mee. De eerste én de laatste
+          # honderd, zodat de volgorde van GitHub er niet toe doet. De $-namen
+          # in de query zijn GraphQL-variabelen, geen shell.
           # shellcheck disable=SC2016
           gh api graphql \
             -f query='
@@ -82,7 +83,10 @@ jobs:
                     title
                     body
                     createdAt
-                    userContentEdits(first: 100) {
+                    eerste: userContentEdits(first: 100) {
+                      nodes { editedAt editor { login } }
+                    }
+                    laatste: userContentEdits(last: 100) {
                       nodes { editedAt editor { login } }
                     }
                   }
@@ -93,7 +97,7 @@ jobs:
 
           jq -r --arg eigenaar "$EIGENAAR" '
             .data.repository.issue as $i
-            | (([$i.userContentEdits.nodes[]
+            | (([$i.eerste.nodes[], $i.laatste.nodes[]
                 | select(.editor.login == $eigenaar) | .editedAt] | max)
                 // $i.createdAt) as $bewerkt
             | "# \($i.title)\n\n_Velden van de eigenaar laatst bewerkt: \($bewerkt)_\n\n\($i.body // "")\n"
@@ -202,10 +206,19 @@ jobs:
             fi
           done
 
+          # De stand van nu, niet die van het moment waarop de run startte:
+          # zette de eigenaar intussen oppakken, dan blijft de verfijning die
+          # hij goedkeurde staan.
+          gh api "repos/$GH_REPO/issues/$NUMMER" > "$RUNNER_TEMP/issue.json"
+          if jq -e '[.labels[].name] | index("oppakken")' \
+            "$RUNNER_TEMP/issue.json" > /dev/null; then
+            echo "::notice::Het issue kreeg oppakken tijdens het lezen; de verfijning blijft zoals hij was."
+            exit 0
+          fi
+
           # Eerst de tekst in een bestand, zonder pijp: mislukt het ophalen,
           # dan stopt de baan, en wordt er nooit een lege tekst geplaatst.
-          gh api "repos/$GH_REPO/issues/$NUMMER" --jq '.body // ""' \
-            > "$RUNNER_TEMP/tekst.md"
+          jq -r '.body // ""' "$RUNNER_TEMP/issue.json" > "$RUNNER_TEMP/tekst.md"
 
           # Alles boven het merkteken is van de eigenaar en blijft staan, op
           # de regeleinden na; lege regels aan het eind gaan eraf.

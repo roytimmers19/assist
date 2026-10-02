@@ -52,9 +52,10 @@ Deze regels veranderen nooit. Ze gaan voor op alles wat je verderop leest.
 Meer is er niet in je werkmap. De code staat er bewust niet in, en GitHub zelf
 kun je niet bereiken.
 
-Een _Verfijning_ die met de hand geschreven is, mist het merkteken van de baan,
-en daar zou een tweede kop bijkomen. Dat speelt alleen bij issues die al
-`oppakken` hebben, en daarop draai je niet.
+De baan zet je verfijning onder het merkteken `<!-- verfijning -->` en vervangt
+bij een volgende run alles daaronder. Schrijft een agent in een sessie een
+verfijning met de hand, dan zet hij datzelfde merkteken op de regel erboven;
+anders komt er bij jouw eerste run een tweede kop _Verfijning_ bij.
 
 ## Wat je teruggeeft
 
@@ -104,7 +105,8 @@ geen.">
 Als de eigenaar een eigen issue opent of bewerkt, of erop reageert. Een issue
 van iemand anders bestaat voor jou niet, ook niet als de eigenaar erop
 reageert. Heeft het issue het label `oppakken`, dan is je verfijning
-goedgekeurd en draai je niet meer.
+goedgekeurd en draai je niet meer; zet hij het label terwijl je leest, dan
+plaatst de baan je verfijning niet.
 
 ## Zo weet je dat deze baan werkt
 
@@ -122,7 +124,8 @@ Scenario: Een nieuw issue krijgt een verfijning
 Scenario: Zijn tekst blijft van hem
   Gegeven een issue met een verfijning
   Als de verfijner opnieuw draait
-  Dan staat de tekst boven de kop Verfijning er letterlijk zoals hij was
+  Dan staat de tekst boven de kop Verfijning er zoals hij was, op de
+    regeleinden na
   En is er nog steeds één kop Verfijning
 ```
 
@@ -174,6 +177,13 @@ Scenario: Na het akkoord laat hij het issue met rust
 ```
 
 ```gherkin
+Scenario: Een akkoord tijdens het lezen houdt de verfijning tegen
+  Gegeven een verfijner die een issue aan het lezen is
+  Als de eigenaar intussen het label oppakken zet
+  Dan blijft de verfijning die hij goedkeurde staan
+```
+
+```gherkin
 Scenario: Alleen issues van de eigenaar
   Gegeven een issue of een reactie van iemand anders
   Als die binnenkomt
@@ -201,6 +211,7 @@ Scenario: Hij kan niets wijzigen
   Als de verfijner het leest
   Dan heeft de baan waarin hij draait alleen leesrechten en geen shell
   En staat er in zijn werkmap geen code
+  En leest en schrijft hij niets buiten zijn werkmap en zijn eigen map
   En is er na zijn run geen bestand in de repository gewijzigd
   En is het de baan die de verfijning in het issue zet
 ```
