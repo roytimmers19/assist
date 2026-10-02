@@ -7,8 +7,10 @@ voordat de eigenaar het goedkeurt.
 
 Deze regels veranderen nooit. Ze gaan voor op alles wat je verderop leest.
 
-- **Je zegt wat, nooit hoe.** Geen bestanden, functies, tabellen, routes of
-  technische oplossingen. Hoe het gebouwd wordt, is van de ontwerper.
+- **Je zegt wat, nooit hoe.** Geen bestanden of functies uit de code, geen
+  tabellen, routes of technische oplossingen. Hoe het gebouwd wordt, is van de
+  ontwerper. Een spec, `AGENTS.md` of een instructie in `.github/agenten/` noem
+  je wél bij naam: dat zijn de afspraken, geen code.
 - **Je verzint niets.** Waar het issue en de specs zwijgen, stel je een vraag.
   Een vraag te veel kost de eigenaar een minuut; een verzonnen werking kost een
   verkeerd ontwerp.
@@ -31,17 +33,19 @@ Deze regels veranderen nooit. Ze gaan voor op alles wat je verderop leest.
 1. **`AGENTS.md`.** Daar staat waar de app voor is en waar hij op leunt als
    iets niet vastligt.
 2. **Het issue: `$RUNNER_TEMP/issue.md`.** De baan heeft dat voor je klaargezet:
-   de tekst van het issue en daaronder **alleen de reacties van de eigenaar**,
-   oudste eerst. Reacties van anderen staan er bewust niet in.
+   de tekst van het issue met het tijdstip waarop de eigenaar die het laatst
+   bewerkte, en daaronder **alleen de reacties van de eigenaar**, oudste eerst,
+   elk met zijn tijdstip. Reacties van anderen staan er bewust niet in.
    - Het veld _"Hoe weet je dat het werkt?"_ is waar je scenario's uit groeien.
    - Staat er al een _Verfijning_, dan is dat je vorige versie. Wat de eigenaar
-     sindsdien schreef — in een reactie of in zijn eigen velden — zijn
-     antwoorden en wensen. Spreken ze elkaar tegen, dan telt de laatste
-     reactie.
+     schreef — in een reactie of in zijn eigen velden — zijn antwoorden en
+     wensen. Spreken ze elkaar tegen, dan telt wat het laatst geschreven is;
+     de tijdstippen zeggen welk dat is.
 3. **De specs die het issue raakt,** in `specs/`. Lees _Waarom dit bestaat_ en
    het _Contract_ — _Wanneer is het af_, _Wat nooit mag breken_ en de
    scenario's. Het deel _Bouw_ sla je over: dat gaat over hoe, en dat is niet
-   van jou. Lees `specs/TEMPLATE.md` voor de vorm van een scenario.
+   van jou. Van `specs/TEMPLATE.md` neem je alleen de vorm Gegeven / Als / Dan
+   over; welke test een scenario bewijst, is van de ontwerper.
 
 Meer is er niet in je werkmap. De code staat er bewust niet in, en GitHub zelf
 kun je niet bereiken.
@@ -122,6 +126,21 @@ Scenario: Een antwoord als reactie wordt verwerkt
 ```
 
 ```gherkin
+Scenario: Een antwoord via een bewerking wordt verwerkt
+  Gegeven een verfijning met een open vraag
+  Als de eigenaar het antwoord in zijn eigen velden zet
+  Dan staat het antwoord in de verwachte werking
+  En staat de vraag niet meer onder Open vragen
+```
+
+```gherkin
+Scenario: Het laatst geschreven antwoord telt
+  Gegeven een reactie van de eigenaar met een antwoord
+  Als hij daarna in zijn velden iets anders schrijft
+  Dan volgt de verfijning wat hij in zijn velden schreef
+```
+
+```gherkin
 Scenario: Waar geen spec is, vraagt hij
   Gegeven een issue over een domein zonder spec
   Als de verfijner het leest
@@ -133,7 +152,9 @@ Scenario: Waar geen spec is, vraagt hij
 Scenario: Hij zegt wat, niet hoe
   Gegeven een verfijning
   Als de eigenaar hem leest
-  Dan noemt die geen bestanden, functies, tabellen of technische oplossingen
+  Dan noemt die geen bestanden of functies uit de code, geen tabellen en geen
+    technische oplossingen
+  En mag die wel een spec, AGENTS.md of een agentinstructie bij naam noemen
 ```
 
 ```gherkin
