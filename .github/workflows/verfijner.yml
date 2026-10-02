@@ -1,0 +1,265 @@
+---
+name: Verfijner
+
+# Schrijft onder de kop Verfijning in een issue uit hoe het zich moet gedragen,
+# voordat de eigenaar het goedkeurt. De instructie staat in
+# .github/agenten/verfijner.md.
+#
+# Twee banen, zoals bij de criticus. In "lezen" draait het model, met een
+# sleutel die alleen kan lezen, zonder shell, en zonder code in zijn werkmap;
+# het enige wat eruit komt is verfijning.md. "plaatsen" heeft geen model en
+# zet die verfijning onder de tekst van de eigenaar.
+#
+# Een baan op issues draait altijd van master: daar komen zijn rechten
+# vandaan. De instructie, AGENTS.md en de specs komen van staging, waar het
+# werk heen gaat. Wat de baan zelf in het issue zet, start geen nieuwe run.
+
+on: # yamllint disable-line rule:truthy
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  lezen:
+    name: verfijner
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Alleen op een issue van de eigenaar, na zijn eigen bewerking of reactie,
+    # en niet meer na oppakken. Een reactie op een PR telt niet.
+    if: >-
+      github.event.sender.login == github.repository_owner
+      && github.event.issue.user.login == github.repository_owner
+      && !github.event.issue.pull_request
+      && !contains(github.event.issue.labels.*.name, 'oppakken')
+
+    # Een nieuwe bewerking breekt de lopende lezing af: alleen de laatste telt.
+    concurrency:
+      group: verfijner-${{ github.event.issue.number }}
+      cancel-in-progress: true
+
+    permissions:
+      contents: read
+      issues: read
+
+    steps:
+      # Van staging alleen de afspraken. Er staat geen code in zijn werkmap.
+      - name: Afspraken ophalen
+        uses: actions/checkout@v6
+        with:
+          ref: staging
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /AGENTS.md
+            /specs/
+            /.github/agenten/verfijner.md
+
+      # Zonder model: de issuetekst en alleen de reacties van de eigenaar,
+      # met tijdstippen. Reacties van anderen komen zo nooit bij het model.
+      - name: Issue klaarzetten
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EIGENAAR: ${{ github.repository_owner }}
+          NUMMER: ${{ github.event.issue.number }}
+        run: |
+          werk="$RUNNER_TEMP/verfijner"
+          mkdir -p "$werk"
+
+          # De laatste bewerking door de eigenaar zelf, uit de geschiedenis:
+          # de bewerkingen van de baan tellen niet mee. De eerste én de laatste
+          # honderd, zodat de volgorde van GitHub er niet toe doet. De $-namen
+          # in de query zijn GraphQL-variabelen, geen shell.
+          # shellcheck disable=SC2016
+          gh api graphql \
+            -f query='
+              query($eigenaar: String!, $naam: String!, $nummer: Int!) {
+                repository(owner: $eigenaar, name: $naam) {
+                  issue(number: $nummer) {
+                    title
+                    body
+                    createdAt
+                    eerste: userContentEdits(first: 100) {
+                      nodes { editedAt editor { login } }
+                    }
+                    laatste: userContentEdits(last: 100) {
+                      nodes { editedAt editor { login } }
+                    }
+                  }
+                }
+              }' \
+            -f eigenaar="$EIGENAAR" -f naam="${GH_REPO#*/}" -F nummer="$NUMMER" \
+            > "$werk/gegevens.json"
+
+          jq -r --arg eigenaar "$EIGENAAR" '
+            .data.repository.issue as $i
+            | (([$i.eerste.nodes[], $i.laatste.nodes[]
+                | select(.editor.login == $eigenaar) | .editedAt] | max)
+                // $i.createdAt) as $bewerkt
+            | "# \($i.title)\n\n_Velden van de eigenaar laatst bewerkt: \($bewerkt)_\n\n\($i.body // "")\n"
+          ' "$werk/gegevens.json" > "$werk/issue.md"
+          rm "$werk/gegevens.json"
+
+          {
+            echo
+            echo "# Reacties van de eigenaar"
+            echo
+            gh api --paginate "repos/$GH_REPO/issues/$NUMMER/comments" \
+              --jq ".[] | select(.user.login == \"$EIGENAAR\")
+                | \"## \(.created_at)\n\n\(.body)\n\""
+          } >> "$werk/issue.md"
+
+      - name: Node opzetten
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Verfijner lezen laten
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          NUMMER: ${{ github.event.issue.number }}
+        # Geen GH_TOKEN: hij kan GitHub niet bereiken. Wat hij mag:
+        # --restricted    alleen de gereedschappen uit --tools, lezen en
+        #                 schrijven alleen in de werkmap en zijn eigen map, en
+        #                 geen settings of hooks
+        # --tools         geen shell
+        # dontAsk         wat niet in --allowedTools staat wordt geweigerd,
+        #                 niet beoordeeld
+        # --allowedTools  lezen, en schrijven alleen in zijn eigen map (de
+        #                 dubbele slash maakt het pad absoluut)
+        run: |
+          werk="$RUNNER_TEMP/verfijner"
+          opdracht="$(cat .github/agenten/verfijner.md)"$'\n\n'"Je verfijnt issue #$NUMMER."
+          opdracht+=" Het issue staat in $werk/issue.md."
+          opdracht+=" Je schrijft je verfijning naar $werk/verfijning.md."
+          npx -y @anthropic-ai/claude-code@2.1.286 \
+            -p "$opdracht" \
+            --model sonnet \
+            --restricted \
+            --strict-mcp-config \
+            --permission-mode dontAsk \
+            --add-dir "$werk" \
+            --tools "Read,Glob,Grep,Write" \
+            --allowedTools "Read" "Glob" "Grep" "Edit(/$werk/**)"
+
+      # Ook genegeerde bestanden: na een verse checkout hoort er geen te zijn.
+      - name: Niets in de werkmap gewijzigd
+        run: |
+          gewijzigd="$(git status --porcelain --ignored)"
+          if [ -n "$gewijzigd" ]; then
+            echo "::error::De verfijner heeft de werkmap gewijzigd:"
+            echo "$gewijzigd"
+            exit 1
+          fi
+
+      - name: Verfijning bewaren
+        uses: actions/upload-artifact@v4
+        with:
+          name: verfijning
+          path: ${{ runner.temp }}/verfijner/verfijning.md
+          if-no-files-found: error
+          retention-days: 1
+
+  plaatsen:
+    name: verfijner plaatsen
+    needs: lezen
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    # Na elkaar, en een lopende wordt niet afgebroken. Wachten er twee, dan
+    # vervangt GitHub de oudste door de nieuwste.
+    concurrency:
+      group: verfijner-plaatsen-${{ github.event.issue.number }}
+      cancel-in-progress: false
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Verfijning ophalen
+        uses: actions/download-artifact@v4
+        with:
+          name: verfijning
+          path: ${{ runner.temp }}/verfijning
+
+      - name: Verfijning in het issue zetten
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NUMMER: ${{ github.event.issue.number }}
+        run: |
+          verfijning="$RUNNER_TEMP/verfijning/verfijning.md"
+
+          if [ "$(head -n 1 "$verfijning")" != "## Verfijning" ]; then
+            echo "::error::De verfijning begint niet met ## Verfijning."
+            exit 1
+          fi
+          for kop in "### Verwachte werking" "### Uitstraling" \
+            "### Geraakte afspraken" "### Open vragen"; do
+            if ! grep -qxF "$kop" "$verfijning"; then
+              echo "::error::De verfijning mist de kop $kop."
+              exit 1
+            fi
+          done
+
+          # Het knippunt is het laatste merkteken dat niet in een codeblok
+          # staat. Een merkteken dat de eigenaar citeert, telt zo niet mee.
+          merkteken='<!-- verfijning -->'
+          laatste_merkteken() {
+            awk -v merkteken="$merkteken" '
+              { sub(/\r$/, "") }
+              /^[[:space:]]*(```|~~~)/ { inblok = !inblok; next }
+              !inblok && $0 == merkteken { regel = NR }
+              END { print regel + 0 }' "$1"
+          }
+
+          # Een kaal merkteken in de verfijning zelf zou het volgende
+          # knippunt worden; zo'n verfijning komt er niet in.
+          if [ "$(laatste_merkteken "$verfijning")" -gt 0 ]; then
+            echo "::error::De verfijning bevat het merkteken buiten een codeblok."
+            exit 1
+          fi
+
+          # De stand van nu, niet die van het moment waarop de run startte:
+          # zette de eigenaar intussen oppakken, dan blijft de verfijning die
+          # hij goedkeurde staan.
+          gh api "repos/$GH_REPO/issues/$NUMMER" > "$RUNNER_TEMP/issue.json"
+          if jq -e '[.labels[].name] | index("oppakken")' \
+            "$RUNNER_TEMP/issue.json" > /dev/null; then
+            echo "::notice::Het issue kreeg oppakken tijdens het lezen; de verfijning blijft zoals hij was."
+            exit 0
+          fi
+
+          # Eerst de tekst in een bestand, zonder pijp: mislukt het ophalen,
+          # dan stopt de baan, en wordt er nooit een lege tekst geplaatst.
+          jq -r '.body // ""' "$RUNNER_TEMP/issue.json" > "$RUNNER_TEMP/tekst.md"
+
+          # Alles boven het knippunt is van de eigenaar en blijft staan, op de
+          # regeleinden na; lege regels aan het eind gaan eraf. Is er nog geen
+          # knippunt, dan blijft de hele tekst staan.
+          knip="$(laatste_merkteken "$RUNNER_TEMP/tekst.md")"
+          if [ "$knip" -gt 0 ]; then
+            head -n "$((knip - 1))" "$RUNNER_TEMP/tekst.md" > "$RUNNER_TEMP/eigen.md"
+          else
+            cp "$RUNNER_TEMP/tekst.md" "$RUNNER_TEMP/eigen.md"
+          fi
+          awk '
+            { sub(/\r$/, ""); regels[++n] = $0 }
+            END {
+              while (n > 0 && regels[n] ~ /^[[:space:]]*$/) n--
+              for (i = 1; i <= n; i++) print regels[i]
+            }' "$RUNNER_TEMP/eigen.md" > "$RUNNER_TEMP/boven.md"
+
+          {
+            cat "$RUNNER_TEMP/boven.md"
+            echo
+            echo "$merkteken"
+            cat "$verfijning"
+          } > "$RUNNER_TEMP/nieuw.md"
+
+          gh api -X PATCH "repos/$GH_REPO/issues/$NUMMER" \
+            -F "body=@$RUNNER_TEMP/nieuw.md" > /dev/null

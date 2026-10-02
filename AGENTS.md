@@ -53,7 +53,7 @@ die er al is, anders een agent in een sessie met de eigenaar.
 
 | Stap      | Wie                 | Wat er gebeurt                                                             | Poort: de eigenaar                             |
 | --------- | ------------------- | -------------------------------------------------------------------------- | ---------------------------------------------- |
-| Verfijnen | agent in een sessie | Werking en uitstraling onder de kop _Verfijning_ in het issue              | label `oppakken`, of sluiten als _not planned_ |
+| Verfijnen | de verfijner        | Werking en uitstraling onder de kop _Verfijning_ in het issue              | label `oppakken`, of sluiten als _not planned_ |
 | Ontwerpen | agent in een sessie | Concept-PR naar `staging`: de spec in de diff, het bouwplan in de PR-tekst | label `bouwen` op de PR                        |
 | Bouwen    | agent in een sessie | Tests en code volgens het bouwplan; `Poorten` controleert                  | squash naar `staging`                          |
 | Uitrollen | agent in een sessie | Wat het op `staging` uithoudt, in één PR van `staging` naar `master`       | merge-commit naar `master`                     |
