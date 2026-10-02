@@ -58,14 +58,18 @@ die er al is, anders een agent in een sessie met de eigenaar.
 | Bouwen    | agent in een sessie | Tests en code volgens het bouwplan; `Poorten` controleert                  | squash naar `staging`                          |
 | Uitrollen | agent in een sessie | Wat het op `staging` uithoudt gaat als één commit naar `master`            | merge naar `master`                            |
 
+Met het label `criticus` leest de criticus een PR mee, in welke stap ook. Zijn
+oordeel adviseert; tegenhouden doet alleen `Poorten`.
+
 Verandert gedrag, dan verandert `specs/<domein>/spec.md` mee in dezelfde PR.
 Heeft het domein nog geen spec, dan schrijft de ontwerpstap hem, vóór de code.
 Ook een bugfix begint met een ontwerp zodra hij iets nieuws vastlegt: een
 gedeelde functie of een kernregel.
 
-In de repository staat wat blijft gelden: `AGENTS.md` en de specs. Een bouwplan
-staat in de PR-tekst, een verslag nergens. Wat in de repository staat wordt
-gelezen als geldende afspraak, en een afgesloten plan is dat niet.
+In de repository staat wat blijft gelden: `AGENTS.md`, de specs, en de
+instructies van de agents in `.github/agenten/`. Een bouwplan staat in de
+PR-tekst, een verslag nergens. Wat in de repository staat wordt gelezen als
+geldende afspraak, en een afgesloten plan is dat niet.
 
 `staging` is de testomgeving op <https://teamassist-staging.vercel.app>, tegen
 een kopie van de productiedatabase — wat daar staat is dus nog niet van het

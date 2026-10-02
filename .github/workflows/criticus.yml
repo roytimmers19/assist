@@ -1,0 +1,174 @@
+---
+name: Criticus
+
+# Leest een PR tegen spec en AGENTS.md, en adviseert. Blokkeert nooit: de
+# baan Poorten is het enige dat een merge tegenhoudt. De instructie staat in
+# .github/agenten/criticus.md; lokaal draait hij met
+# claude -p "$(cat .github/agenten/criticus.md)".
+#
+# Twee banen. In "lezen" draait het model, met een sleutel die alleen kan
+# lezen; het enige wat eruit komt is oordeel.md. "plaatsen" heeft geen model
+# en zet dat oordeel op de PR. Wat de criticus mag, bepaalt zo de baan en
+# niet zijn instructie.
+#
+# pull_request_target, niet pull_request: dan komen deze baan, de instructie,
+# AGENTS.md en de specs van de basistak, en niet uit de PR. Een PR die de
+# criticus verandert, wordt zo nog gelezen met de criticus die al geldt. De
+# PR zelf ziet hij alleen via gh pr diff; code uit de PR wordt niet
+# uitgecheckt en niet gedraaid.
+
+on: # yamllint disable-line rule:truthy
+  pull_request_target:
+    types: [labeled, synchronize]
+
+permissions: {}
+
+jobs:
+  lezen:
+    name: criticus
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Alleen met het label criticus: het zetten ervan start hem, en zolang het
+    # blijft staan leest hij elke nieuwe push opnieuw. Nooit op een PR vanaf
+    # een fork: daar schrijft een buitenstaander de tekst die het model leest,
+    # met het token van het abonnement in de buurt.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && ((github.event.action == 'labeled'
+      && github.event.label.name == 'criticus')
+      || (github.event.action == 'synchronize'
+      && contains(github.event.pull_request.labels.*.name, 'criticus')))
+
+    # Op baanniveau, zodat een overgeslagen run om een ander label de lopende
+    # niet afbreekt. Drie pushes vlak na elkaar leveren één oordeel op.
+    concurrency:
+      group: criticus-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+
+    steps:
+      # De basistak: bij pull_request_target is dat wat checkout standaard
+      # ophaalt. Geef hier nooit de ref van de PR mee.
+      - name: Code ophalen
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Node opzetten
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Criticus lezen laten
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        # Wat hij mag, staat hier en nergens anders:
+        # --restricted    alleen de gereedschappen uit --tools, lezen en
+        #                 schrijven alleen in de werkmap en $RUNNER_TEMP, en
+        #                 geen settings uit de PR (dus ook geen hooks)
+        # --strict-mcp-config  geen MCP-servers, ook niet uit de PR
+        # dontAsk         wat niet in --allowedTools staat wordt geweigerd,
+        #                 niet beoordeeld
+        # --allowedTools  schrijven alleen onder $RUNNER_TEMP (de dubbele
+        #                 slash maakt het pad absoluut) en drie gh-opdrachten
+        #                 die lezen; de sleutel kan ook niets anders
+        run: |
+          opdracht="$(cat .github/agenten/criticus.md)"$'\n\n'"Je leest PR #$PR."
+          opdracht+=" Je schrijft je oordeel naar $RUNNER_TEMP/oordeel.md."
+          npx -y @anthropic-ai/claude-code@2.1.286 \
+            -p "$opdracht" \
+            --model opus \
+            --restricted \
+            --strict-mcp-config \
+            --permission-mode dontAsk \
+            --add-dir "$RUNNER_TEMP" \
+            --tools "Read,Glob,Grep,Write,Bash" \
+            --allowedTools \
+              "Read" "Glob" "Grep" "Edit(/$RUNNER_TEMP/**)" \
+              "Bash(gh pr view:*)" "Bash(gh pr diff:*)" "Bash(gh issue view:*)"
+
+      # Ook genegeerde bestanden: na een verse checkout hoort er geen te zijn.
+      - name: Niets in de repository gewijzigd
+        run: |
+          gewijzigd="$(git status --porcelain --ignored)"
+          if [ -n "$gewijzigd" ]; then
+            echo "::error::De criticus heeft de repository gewijzigd:"
+            echo "$gewijzigd"
+            exit 1
+          fi
+
+      - name: Oordeel bewaren
+        uses: actions/upload-artifact@v4
+        with:
+          name: oordeel
+          path: ${{ runner.temp }}/oordeel.md
+          if-no-files-found: error
+          retention-days: 1
+
+  plaatsen:
+    name: criticus plaatsen
+    needs: lezen
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    # Na elkaar, en een lopende wordt niet afgebroken. Wachten er twee, dan
+    # vervangt GitHub de oudste door de nieuwste; het oordeel van nu wint.
+    concurrency:
+      group: criticus-plaatsen-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Oordeel ophalen
+        uses: actions/download-artifact@v4
+        with:
+          name: oordeel
+          path: ${{ runner.temp }}/oordeel
+
+      - name: Oordeel op de PR zetten
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          oordeel="$RUNNER_TEMP/oordeel/oordeel.md"
+          reactie="$RUNNER_TEMP/reactie.md"
+
+          # Alleen de eerste oordeelregel telt; een citaat verderop niet.
+          oordeelregel="$(grep -m 1 '^\*\*Oordeel:\*\* ' "$oordeel" || true)"
+          if [ -z "$oordeelregel" ]; then
+            echo "::error::Het oordeel mist de regel **Oordeel:**."
+            exit 1
+          fi
+
+          # Het merkteken herkent zijn vorige reactie. Andere banen reageren
+          # met hetzelfde account, dus "de laatste reactie" is niet per se van
+          # hem.
+          merkteken='<!-- criticus -->'
+          { echo "$merkteken"; cat "$oordeel"; } > "$reactie"
+
+          vorige="$(gh api --paginate "repos/$GH_REPO/issues/$PR/comments" \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\")
+              | select(.body | startswith(\"$merkteken\")) | .id" | tail -n 1)"
+
+          if [ -n "$vorige" ]; then
+            gh api -X PATCH "repos/$GH_REPO/issues/comments/$vorige" \
+              -F "body=@$reactie" > /dev/null
+          else
+            gh pr comment "$PR" --body-file "$reactie"
+          fi
+
+          if [[ "$oordeelregel" == "**Oordeel:** AFGEKEURD"* ]]; then
+            gh pr edit "$PR" --add-label "criticus: afgekeurd"
+          else
+            gh pr edit "$PR" --remove-label "criticus: afgekeurd"
+          fi
