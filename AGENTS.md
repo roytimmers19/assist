@@ -47,22 +47,37 @@ en `wim`.
 
 ## Werkwijze
 
-Eén issue, één PR. De PR begint als concept met alleen het ontwerp; pas na
-akkoord komt er code in. Verandert gedrag, dan verandert `specs/<domein>/spec.md`
-mee in dezelfde PR. Heeft het domein nog geen spec, dan schrijf je die in
-diezelfde conceptfase, vóór de code, en de eigenaar keurt hem daar goed.
+Eén issue, één PR. Elk issue loopt langs vier poorten, en bij elke poort
+beslist de eigenaar. Wat ertussen gebeurt doet een agent: een eigen baan als
+die er al is, anders een agent in een sessie met de eigenaar.
 
-Een PR gaat naar `staging`, niet rechtstreeks naar `master`. Daar draait de
-testomgeving op <https://teamassist-staging.vercel.app>, tegen een kopie van de
-productiedatabase — wat daar staat is dus nog niet van het team. Pas wat het
-daar uithoudt gaat als één commit naar `master`, en dat is
-<https://teamassist.vercel.app>: de app die de ploeg openslaat.
+| Stap      | Wie                 | Wat er gebeurt                                                             | Poort: de eigenaar                             |
+| --------- | ------------------- | -------------------------------------------------------------------------- | ---------------------------------------------- |
+| Verfijnen | agent in een sessie | Werking en uitstraling onder de kop _Verfijning_ in het issue              | label `oppakken`, of sluiten als _not planned_ |
+| Ontwerpen | agent in een sessie | Concept-PR naar `staging`: de spec in de diff, het bouwplan in de PR-tekst | label `bouwen` op de PR                        |
+| Bouwen    | agent in een sessie | Tests en code volgens het bouwplan; `Poorten` controleert                  | squash naar `staging`                          |
+| Uitrollen | agent in een sessie | Wat het op `staging` uithoudt, in één PR van `staging` naar `master`       | merge-commit naar `master`                     |
 
-Merg die pull requests met een squash. Daarmee blijft de historie van `staging`
-één rechte lijn, en dat is geen smaakkwestie: de lintbaan zoekt zijn
-vergelijkpunt door net zoveel commits terug te lopen als de pull request telt.
-Een merge-commit telt wel mee maar verlengt die lijn niet, en dan valt hij om op
-een commit die niet bestaat.
+Met het label `criticus` leest de criticus een PR mee, in welke stap ook. Zijn
+oordeel adviseert; tegenhouden doet alleen `Poorten`.
+
+Verandert gedrag, dan verandert `specs/<domein>/spec.md` mee in dezelfde PR.
+Heeft het domein nog geen spec, dan schrijft de ontwerpstap hem, vóór de code.
+Ook een bugfix begint met een ontwerp zodra hij iets nieuws vastlegt: een
+gedeelde functie of een kernregel.
+
+In de repository staat wat blijft gelden: `AGENTS.md`, de specs, en de
+instructies van de agents in `.github/agenten/`. Een bouwplan staat in de
+PR-tekst, een verslag nergens. Wat in de repository staat wordt gelezen als
+geldende afspraak, en een afgesloten plan is dat niet.
+
+`staging` is de testomgeving op <https://teamassist-staging.vercel.app>, tegen
+een kopie van de productiedatabase — wat daar staat is dus nog niet van het
+team. `master` is <https://teamassist.vercel.app>: de app die de ploeg
+openslaat. Een issue gaat pas dicht als zijn werk op `master` staat. Een
+werk-PR schrijft `Sluit #N`: dat legt de herkomst vast, maar sluit niets. De
+uitrol-PR noemt `Closes #N` voor elk issue dat meegaat, en dan sluit GitHub het
+bij de merge naar `master`.
 
 ## Vraag eerst
 
