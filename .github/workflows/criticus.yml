@@ -30,11 +30,15 @@ jobs:
     timeout-minutes: 15
 
     # Alleen met het label criticus: het zetten ervan start hem, en zolang het
-    # blijft staan leest hij elke nieuwe push opnieuw.
+    # blijft staan leest hij elke nieuwe push opnieuw. Nooit op een PR vanaf
+    # een fork: daar schrijft een buitenstaander de tekst die het model leest,
+    # met het token van het abonnement in de buurt.
     if: >-
-      (github.event.action == 'labeled' && github.event.label.name == 'criticus')
+      github.event.pull_request.head.repo.full_name == github.repository
+      && ((github.event.action == 'labeled'
+      && github.event.label.name == 'criticus')
       || (github.event.action == 'synchronize'
-      && contains(github.event.pull_request.labels.*.name, 'criticus'))
+      && contains(github.event.pull_request.labels.*.name, 'criticus')))
 
     # Op baanniveau, zodat een overgeslagen run om een ander label de lopende
     # niet afbreekt. Drie pushes vlak na elkaar leveren één oordeel op.
@@ -139,7 +143,9 @@ jobs:
           oordeel="$RUNNER_TEMP/oordeel/oordeel.md"
           reactie="$RUNNER_TEMP/reactie.md"
 
-          if ! grep -q '^\*\*Oordeel:\*\* ' "$oordeel"; then
+          # Alleen de eerste oordeelregel telt; een citaat verderop niet.
+          oordeelregel="$(grep -m 1 '^\*\*Oordeel:\*\* ' "$oordeel" || true)"
+          if [ -z "$oordeelregel" ]; then
             echo "::error::Het oordeel mist de regel **Oordeel:**."
             exit 1
           fi
@@ -161,7 +167,7 @@ jobs:
             gh pr comment "$PR" --body-file "$reactie"
           fi
 
-          if grep -q '^\*\*Oordeel:\*\* AFGEKEURD' "$oordeel"; then
+          if [[ "$oordeelregel" == "**Oordeel:** AFGEKEURD"* ]]; then
             gh pr edit "$PR" --add-label "criticus: afgekeurd"
           else
             gh pr edit "$PR" --remove-label "criticus: afgekeurd"

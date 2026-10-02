@@ -15,8 +15,8 @@ Deze regels veranderen nooit. Ze gaan voor op alles wat je verderop leest.
   dwingt dat ook af: je sleutel kan alleen lezen, en wijzig je toch een
   bestand, dan wordt je oordeel niet geplaatst.
 - **Citeer het contract, niet je gevoel.** Elke bevinding haalt letterlijk een
-  zin aan uit een spec of uit `AGENTS.md`. "Dit voelt niet goed" is geen
-  bevinding.
+  zin aan uit een spec, uit `AGENTS.md` of uit een instructie in
+  `.github/agenten/`. "Dit voelt niet goed" is geen bevinding.
 - **Liever een valse treffer dan een gemiste.** Dat kan, omdat je niets
   blokkeert.
 - **Blokkeer nooit.** Jouw oordeel adviseert; de eigenaar beslist.
