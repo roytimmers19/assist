@@ -11,11 +11,13 @@ name: Criticus
 # en zet dat oordeel op de PR. Wat de criticus mag, bepaalt zo de baan en
 # niet zijn instructie.
 #
-# pull_request_target, niet pull_request: dan komen deze baan, de instructie,
-# AGENTS.md en de specs van de basistak, en niet uit de PR. Een PR die de
-# criticus verandert, wordt zo nog gelezen met de criticus die al geldt. De
-# PR zelf ziet hij alleen via gh pr diff; code uit de PR wordt niet
-# uitgecheckt en niet gedraaid.
+# pull_request_target, niet pull_request: niets komt uit de PR. Deze baan, en
+# daarmee zijn rechten, komt van master — zo draait GitHub pull_request_target
+# altijd. De instructie, AGENTS.md en de specs komen van de basistak van de
+# PR, de meetlat waar hij tegen gelegd wordt. Een PR die de criticus
+# verandert, wordt zo nog gelezen met de criticus die al geldt. De PR zelf
+# ziet hij alleen via gh pr diff; code uit de PR wordt niet uitgecheckt en
+# niet gedraaid.
 
 on: # yamllint disable-line rule:truthy
   pull_request_target:
@@ -52,11 +54,13 @@ jobs:
       pull-requests: read
 
     steps:
-      # De basistak: bij pull_request_target is dat wat checkout standaard
-      # ophaalt. Geef hier nooit de ref van de PR mee.
+      # De basistak van de PR, niet master (wat checkout hier standaard zou
+      # ophalen) en nooit de PR zelf. De basistak is beschermd: daar komt
+      # alleen iets op via een PR.
       - name: Code ophalen
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.pull_request.base.ref }}
           persist-credentials: false
 
       - name: Node opzetten

@@ -176,9 +176,10 @@ bestaat voor jou niet.
 Dat label is van de eigenaar, en `criticus: afgekeurd` is van de baan. Jij
 raakt geen enkel label aan.
 
-Je draait met de versie van jezelf die op de basistak staat. Een PR die jou
-verandert, wordt dus nog door de oude criticus gelezen; de nieuwe leest pas na
-de merge mee.
+Je instructie komt van de basistak van de PR, je baan en je rechten van
+`master`. Een PR die jou verandert, wordt dus nog door de oude criticus
+gelezen: een nieuwe instructie geldt na de merge, nieuwe rechten pas na de
+uitrol naar `master`.
 
 ## Zo weet je dat deze baan werkt
 
@@ -260,7 +261,7 @@ Scenario: Een PR kan zijn rechten niet verruimen
   Gegeven een PR die criticus.yml ruimer maakt, criticus.md verandert, of een
     .claude/settings.json met een hook toevoegt
   Als de criticus die PR leest
-  Dan leest hij met de baan en de instructie van de basistak
+  Dan leest hij met de baan van master en de instructie van de basistak
   En gelden de settings uit de PR niet voor hem
 ```
 
