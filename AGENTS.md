@@ -55,7 +55,7 @@ die er al is, anders een agent in een sessie met de eigenaar.
 | --------- | ------------------- | -------------------------------------------------------------------------- | ---------------------------------------------- |
 | Verfijnen | agent in een sessie | Werking en uitstraling onder de kop _Verfijning_ in het issue              | label `oppakken`, of sluiten als _not planned_ |
 | Ontwerpen | agent in een sessie | Concept-PR naar `staging`: de spec in de diff, het bouwplan in de PR-tekst | label `bouwen` op de PR                        |
-| Bouwen    | agent in een sessie | Tests en code volgens het bouwplan; `Poorten` en de criticus lezen mee     | squash naar `staging`                          |
+| Bouwen    | agent in een sessie | Tests en code volgens het bouwplan; `Poorten` controleert                  | squash naar `staging`                          |
 | Uitrollen | agent in een sessie | Wat het op `staging` uithoudt gaat als één commit naar `master`            | merge naar `master`                            |
 
 Verandert gedrag, dan verandert `specs/<domein>/spec.md` mee in dezelfde PR.
