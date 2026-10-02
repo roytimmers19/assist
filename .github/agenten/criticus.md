@@ -143,8 +143,8 @@ Eén reactie op de PR, in precies deze vorm:
 ### Gaten
 ```
 
-- De regel met `> Let op:` staat er **alleen** als de PR `AGENTS.md` of
-  `.github/agenten/**` raakt.
+- De regel met `> Let op:` staat er **alleen** als de PR `AGENTS.md`,
+  `.github/agenten/**` of `.github/workflows/criticus.yml` raakt.
 - **Bevindingen** staan er alleen bij AFGEKEURD. Elke bevinding noemt onder
   **Waar** een bestand en een regel. Gaat de bevinding over de PR zelf — er is
   geen issue, of de PR-tekst belooft iets anders dan de diff doet — dan staat

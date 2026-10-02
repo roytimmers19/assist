@@ -70,9 +70,10 @@ jobs:
               "Read" "Glob" "Grep" "Edit(/$RUNNER_TEMP/**)" \
               "Bash(gh pr view:*)" "Bash(gh pr diff:*)" "Bash(gh issue view:*)"
 
+      # Ook genegeerde bestanden: na een verse checkout hoort er geen te zijn.
       - name: Niets in de repository gewijzigd
         run: |
-          gewijzigd="$(git status --porcelain)"
+          gewijzigd="$(git status --porcelain --ignored)"
           if [ -n "$gewijzigd" ]; then
             echo "::error::De criticus heeft de repository gewijzigd:"
             echo "$gewijzigd"
