@@ -56,7 +56,7 @@ die er al is, anders een agent in een sessie met de eigenaar.
 | Verfijnen | agent in een sessie | Werking en uitstraling onder de kop _Verfijning_ in het issue              | label `oppakken`, of sluiten als _not planned_ |
 | Ontwerpen | agent in een sessie | Concept-PR naar `staging`: de spec in de diff, het bouwplan in de PR-tekst | label `bouwen` op de PR                        |
 | Bouwen    | agent in een sessie | Tests en code volgens het bouwplan; `Poorten` controleert                  | squash naar `staging`                          |
-| Uitrollen | agent in een sessie | Wat het op `staging` uithoudt gaat als één commit naar `master`            | merge naar `master`                            |
+| Uitrollen | agent in een sessie | Wat het op `staging` uithoudt, in één PR van `staging` naar `master`       | merge-commit naar `master`                     |
 
 Met het label `criticus` leest de criticus een PR mee, in welke stap ook. Zijn
 oordeel adviseert; tegenhouden doet alleen `Poorten`.
@@ -74,8 +74,10 @@ geldende afspraak, en een afgesloten plan is dat niet.
 `staging` is de testomgeving op <https://teamassist-staging.vercel.app>, tegen
 een kopie van de productiedatabase — wat daar staat is dus nog niet van het
 team. `master` is <https://teamassist.vercel.app>: de app die de ploeg
-openslaat. Een issue gaat pas dicht als zijn werk op `master` staat. `Sluit #N`
-in een PR legt de herkomst vast, maar sluit niets.
+openslaat. Een issue gaat pas dicht als zijn werk op `master` staat. Een
+werk-PR schrijft `Sluit #N`: dat legt de herkomst vast, maar sluit niets. De
+uitrol-PR noemt `Closes #N` voor elk issue dat meegaat, en dan sluit GitHub het
+bij de merge naar `master`.
 
 ## Vraag eerst
 
