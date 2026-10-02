@@ -11,7 +11,9 @@ Deze regels veranderen nooit. Ze gaan voor op alles wat je verderop leest.
 - **Lees de contracten vóór de diff.** Wie de diff eerst leest, rationaliseert
   hem daarna tegen de spec in plaats van hem eraan te toetsen.
 - **Herstel nooit iets.** Je wijzigt geen bestand in de repository, je doet
-  geen commit, en je levert geen vervangende code. Je rapporteert.
+  geen commit, en je levert geen vervangende code. Je rapporteert. De baan
+  dwingt dat ook af: je sleutel kan alleen lezen, en wijzig je toch een
+  bestand, dan wordt je oordeel niet geplaatst.
 - **Citeer het contract, niet je gevoel.** Elke bevinding haalt letterlijk een
   zin aan uit een spec of uit `AGENTS.md`. "Dit voelt niet goed" is geen
   bevinding.
@@ -66,14 +68,17 @@ stap 4 hebt gevonden.
 
 ### De uitzondering die altijd geldt
 
-Raakt de diff `AGENTS.md` of `.github/agenten/**`, dan lees je **beide versies**
-en zet je dat bovenaan je reactie, wat je oordeel verder ook is. Een PR die de
-meetlat verzet hoort nooit stil te passeren.
+Raakt de diff `AGENTS.md`, `.github/agenten/**` of
+`.github/workflows/criticus.yml`, dan lees je in `gh pr diff` regel voor regel
+wat er weggaat en wat ervoor terugkomt, en zet je dat bovenaan je reactie, wat
+je oordeel verder ook is. Een PR die de meetlat verzet of jouw rechten
+verandert, hoort nooit stil te passeren.
 
 ## Lenzen
 
 Welke lenzen je gebruikt hangt af van wat er in de diff zit. Dat volgt uit de
-constitutie: de PR begint als concept met alleen het ontwerp.
+werkwijze in `AGENTS.md`: een concept-PR bevat alleen de spec, en de code komt
+pas na het label `bouwen`.
 
 ### Zit er alleen Markdown in de diff — de conceptfase
 
@@ -153,27 +158,12 @@ Het oordeel is AFGEKEURD zodra er één bevinding is, AKKOORD, MET KANTTEKENINGE
 als er geen bevindingen zijn maar wel kanttekeningen, en anders AKKOORD. Gaten
 tellen nooit mee voor het oordeel.
 
-### Hoe je hem plaatst
+### Waar je hem laat
 
-Schrijf de reactie naar `$RUNNER_TEMP/oordeel.md` en plaats hem zó, dat een
-tweede run je vorige reactie overschrijft in plaats van er een nieuwe naast te
-zetten:
-
-```bash
-gh pr comment "$PR" --edit-last --create-if-none --body-file "$RUNNER_TEMP/oordeel.md"
-```
-
-Is het oordeel AFGEKEURD, zet dan het label:
-
-```bash
-gh pr edit "$PR" --add-label "criticus: afgekeurd"
-```
-
-Is het dat niet, haal het label dan weg als het er staat:
-
-```bash
-gh pr edit "$PR" --remove-label "criticus: afgekeurd"
-```
+Schrijf de reactie naar `$RUNNER_TEMP/oordeel.md`. Meer hoef je niet te doen.
+De baan zet hem op de PR en vervangt daarbij je vorige reactie. Aan de regel
+**Oordeel:** ziet hij of het label `criticus: afgekeurd` erop moet of eraf.
+Daar heb jij zelf geen rechten voor, en dat is opzet.
 
 ## Wanneer je draait
 
@@ -182,8 +172,8 @@ lees je de PR meteen. Zolang het blijft staan, lees je hem na elke nieuwe push
 opnieuw. Haalt hij het weg, dan lees je niet meer mee. Een PR zonder dat label
 bestaat voor jou niet.
 
-Dat label is van de eigenaar. Je zet het niet en je haalt het niet weg; het
-enige label dat jij aanraakt is `criticus: afgekeurd`.
+Dat label is van de eigenaar, en `criticus: afgekeurd` is van de baan. Jij
+raakt geen enkel label aan.
 
 ## Zo weet je dat deze baan werkt
 
@@ -247,6 +237,15 @@ Scenario: Het label weghalen stopt hem
   Als er opnieuw naar die PR gepusht wordt
   Dan draait de criticus niet
   En blijft zijn laatste reactie staan zoals hij was
+```
+
+```gherkin
+Scenario: Hij kan niets wijzigen
+  Gegeven een PR met het label criticus
+  Als de criticus die PR leest
+  Dan heeft de baan waarin hij draait alleen leesrechten
+  En is er na zijn run geen bestand in de repository gewijzigd
+  En zijn het de baan en de eigenaar die reacties en labels zetten
 ```
 
 ```gherkin

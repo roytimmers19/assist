@@ -5,6 +5,11 @@ name: Criticus
 # baan Poorten is het enige dat een merge tegenhoudt. De instructie staat in
 # .github/agenten/criticus.md; lokaal draait hij met
 # claude -p "$(cat .github/agenten/criticus.md)".
+#
+# Twee banen. In "lezen" draait het model, met een sleutel die alleen kan
+# lezen; het enige wat eruit komt is oordeel.md. "plaatsen" heeft geen model
+# en zet dat oordeel op de PR. Wat de criticus mag, bepaalt zo de baan en
+# niet zijn instructie.
 
 on: # yamllint disable-line rule:truthy
   pull_request:
@@ -13,7 +18,7 @@ on: # yamllint disable-line rule:truthy
 permissions: {}
 
 jobs:
-  criticus:
+  lezen:
     name: criticus
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -34,7 +39,7 @@ jobs:
     permissions:
       contents: read
       issues: read
-      pull-requests: write
+      pull-requests: read
 
     steps:
       - name: Code ophalen
@@ -52,15 +57,90 @@ jobs:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
-        # Hij leest de repository, vraagt via gh de PR en het issue op, en
-        # schrijft alleen zijn oordeel. Herstellen kan hij niet: Edit staat er
-        # niet bij, en Write alleen omdat het oordeel naar $RUNNER_TEMP gaat.
+        # Schrijven mag alleen onder $RUNNER_TEMP; de dubbele slash maakt het
+        # pad absoluut. De gh-opdrachten lezen alleen, en de sleutel kan ook
+        # niets anders.
         run: |
           opdracht="$(cat .github/agenten/criticus.md)"$'\n\n'"Je leest PR #$PR."
           npx -y @anthropic-ai/claude-code@2.1.286 \
             -p "$opdracht" \
+            --model opus \
             --add-dir "$RUNNER_TEMP" \
             --allowedTools \
-              "Read" "Glob" "Grep" "Write" \
-              "Bash(gh pr view:*)" "Bash(gh pr diff:*)" "Bash(gh issue view:*)" \
-              "Bash(gh pr comment:*)" "Bash(gh pr edit:*)"
+              "Read" "Glob" "Grep" "Edit(/$RUNNER_TEMP/**)" \
+              "Bash(gh pr view:*)" "Bash(gh pr diff:*)" "Bash(gh issue view:*)"
+
+      - name: Niets in de repository gewijzigd
+        run: |
+          gewijzigd="$(git status --porcelain)"
+          if [ -n "$gewijzigd" ]; then
+            echo "::error::De criticus heeft de repository gewijzigd:"
+            echo "$gewijzigd"
+            exit 1
+          fi
+
+      - name: Oordeel bewaren
+        uses: actions/upload-artifact@v4
+        with:
+          name: oordeel
+          path: ${{ runner.temp }}/oordeel.md
+          if-no-files-found: error
+          retention-days: 1
+
+  plaatsen:
+    name: criticus plaatsen
+    needs: lezen
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    # Na elkaar, nooit afgebroken: een oordeel dat er is, komt erop.
+    concurrency:
+      group: criticus-plaatsen-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Oordeel ophalen
+        uses: actions/download-artifact@v4
+        with:
+          name: oordeel
+          path: ${{ runner.temp }}/oordeel
+
+      - name: Oordeel op de PR zetten
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          oordeel="$RUNNER_TEMP/oordeel/oordeel.md"
+          reactie="$RUNNER_TEMP/reactie.md"
+
+          if ! grep -q '^\*\*Oordeel:\*\* ' "$oordeel"; then
+            echo "::error::Het oordeel mist de regel **Oordeel:**."
+            exit 1
+          fi
+
+          # Het merkteken herkent zijn vorige reactie. Andere banen reageren
+          # met hetzelfde account, dus "de laatste reactie" is niet per se van
+          # hem.
+          merkteken='<!-- criticus -->'
+          { echo "$merkteken"; cat "$oordeel"; } > "$reactie"
+
+          vorige="$(gh api --paginate "repos/$GH_REPO/issues/$PR/comments" \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\")
+              | select(.body | startswith(\"$merkteken\")) | .id" | tail -n 1)"
+
+          if [ -n "$vorige" ]; then
+            gh api -X PATCH "repos/$GH_REPO/issues/comments/$vorige" \
+              -F "body=@$reactie" > /dev/null
+          else
+            gh pr comment "$PR" --body-file "$reactie"
+          fi
+
+          if grep -q '^\*\*Oordeel:\*\* AFGEKEURD' "$oordeel"; then
+            gh pr edit "$PR" --add-label "criticus: afgekeurd"
+          else
+            gh pr edit "$PR" --remove-label "criticus: afgekeurd"
+          fi
