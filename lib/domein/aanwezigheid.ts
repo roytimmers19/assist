@@ -30,6 +30,7 @@ export function actueleStand(
         status: speler.standaard,
         bron: 'aanname',
         toelichting: null,
+        gezetDoor: null,
         gezetOp: null,
       }
     }
@@ -38,7 +39,18 @@ export function actueleStand(
       status: gevonden.status,
       bron: gevonden.bron,
       toelichting: gevonden.toelichting,
+      gezetDoor: gevonden.gezetDoor,
       gezetOp: gevonden.gezetOp,
     }
   })
+}
+
+/**
+ * Wat een leider leest bij een stand die een leider zette. Alleen wie het zelf
+ * deed leest "door jou"; de rest leest niet wie het was. Zo blijft ook een
+ * beheerder buiten beeld.
+ */
+export function gezetDoorTekst(stand: Stand, kijkerId: string): string | null {
+  if (stand.bron !== 'leider') return null
+  return stand.gezetDoor === kijkerId ? 'door jou gezet' : 'door een leider gezet'
 }

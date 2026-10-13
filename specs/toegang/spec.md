@@ -75,12 +75,12 @@ wat niet mag, maar hier is het de bedoeling.
       `RESEND_API_KEY` en `MAIL_AFZENDER` gezet zijn, verschijnt het formulier
       op `/wachtwoord-vergeten` en gaat dezelfde link per mail. De knop van de
       leider blijft dan bestaan voor wie zijn mail niet vindt.
-- [ ] Een speler met het beheerdersrecht en de rol speler komt op elk
+- [x] Een speler met het beheerdersrecht en de rol speler komt op elk
       leidersscherm en kan daar alles wat een leider kan. Dat geldt ook voor
       de afbeelding van de opstelling.
-- [ ] In het spelersoverzicht staat een beheerder zonder label "leider" en
+- [x] In het spelersoverzicht staat een beheerder zonder label "leider" en
       met het vakje "Leider" uit.
-- [ ] Bewerkt en bewaart een leider de rij van een beheerder, dan blijft het
+- [x] Bewerkt en bewaart een leider de rij van een beheerder, dan blijft het
       beheerdersrecht staan, ook als de leider het vakje "Leider" aan of uit
       zet.
 

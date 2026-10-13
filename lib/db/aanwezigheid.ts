@@ -31,6 +31,7 @@ export async function leesMeldingen(db: Db, eventIds: string[]): Promise<Map<str
       status: rij.status,
       bron: rij.bron,
       toelichting: rij.toelichting,
+      gezetDoor: rij.gezetDoorSpelerId,
       gezetOp: rij.gezetOp,
     })
     uit.set(rij.eventId, lijst)

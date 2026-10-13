@@ -34,6 +34,11 @@ export const spelers = pgTable('speler', {
   rol: text('rol', { enum: ['speler', 'leider'] })
     .notNull()
     .default('speler'),
+  /**
+   * Mag alles wat een leider mag, maar staat in de ploeg als speler. Geen scherm
+   * zet dit; de eigenaar doet het met de hand. Zie `specs/toegang/spec.md`.
+   */
+  beheerder: boolean('beheerder').notNull().default(false),
   accountStatus: text('account_status', {
     enum: ['uitgenodigd', 'wacht_op_goedkeuring', 'actief'],
   })

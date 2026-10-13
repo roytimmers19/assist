@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { zetAanwezigheidAlsLeider } from '@/app/acties/leider'
 import type { EventRij } from '@/lib/db/aanwezigheid'
+import { gezetDoorTekst } from '@/lib/domein/aanwezigheid'
 import { maakAppBericht } from '@/lib/domein/appbericht'
 import { afmeldGrens, isTeLaatAfgemeld } from '@/lib/domein/telaat'
 import type { Stand } from '@/lib/domein/types'
@@ -63,6 +64,7 @@ export function EventKolom({
   afwezig,
   diensten,
   opstellingStatus = null,
+  kijkerId,
 }: {
   event: EventRij
   stand: Stand[]
@@ -72,6 +74,8 @@ export function EventKolom({
   /** Namen, alleen om te tonen — bewerken gebeurt op het roosterscherm. */
   diensten: { materiaal: string[]; rijden: string[] }
   opstellingStatus?: 'concept' | 'gepubliceerd' | null
+  /** Wie kijkt: die leest "door jou gezet" bij wat hij zelf zette. */
+  kijkerId: string
 }) {
   const spelerVan = new Map(spelers.map((s) => [s.id, s]))
   const titel = eventTitel(event)
@@ -97,6 +101,7 @@ export function EventKolom({
   function Regel({ regel }: { regel: Stand }) {
     const speler = spelerVan.get(regel.spelerId)
     const weg = regel.status === 'nee'
+    const doorWie = gezetDoorTekst(regel, kijkerId)
     const teLaat = weg && isTeLaatAfgemeld(regel.gezetOp ?? null, event.startOp)
 
     return (
@@ -127,7 +132,7 @@ export function EventKolom({
           {regel.gezetOp && regel.bron !== 'aanname' && (
             <span className="cijfers block text-xs text-zacht/70">
               {weg ? 'afgemeld' : 'bevestigd'} {alsKortMoment(regel.gezetOp)}
-              {regel.bron === 'leider' && ' · door jou gezet'}
+              {doorWie && ` · ${doorWie}`}
             </span>
           )}
         </span>

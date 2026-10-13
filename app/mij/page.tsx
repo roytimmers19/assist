@@ -37,7 +37,7 @@ export default async function MijnGegevens({
   const lopend = periodes.find((p) => p.terugOp === null || p.terugOp > vandaag) ?? null
 
   return (
-    <Schil naam={sessie.naam} isLeider={sessie.rol === 'leider'} tab="profiel">
+    <Schil naam={sessie.naam} isLeider={sessie.magLeiden} tab="profiel">
       <div>
         <h1 className="uithangbord text-[2rem]">Mijn gegevens</h1>
         <p className="mt-2 text-sm text-zacht">
