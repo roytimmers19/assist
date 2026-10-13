@@ -31,6 +31,20 @@ describe('spelers opzoeken', () => {
     expect(gevonden).toMatchObject({ naam: 'Bas', rol: 'leider', accountStatus: 'actief' })
   })
 
+  it('geeft het beheerdersrecht mee', async () => {
+    await maakGebruiker('g-3', 'aap@voorbeeld.nl')
+    await testDb.insert(spelers).values({
+      naam: 'Aap',
+      email: 'aap@voorbeeld.nl',
+      gebruikerId: 'g-3',
+      accountStatus: 'actief',
+      beheerder: true,
+    })
+
+    const gevonden = await zoekSpelerBijGebruiker(testDb, 'g-3')
+    expect(gevonden).toMatchObject({ rol: 'speler', beheerder: true })
+  })
+
   it('geeft niets terug voor een gebruiker zonder speler', async () => {
     await maakGebruiker('g-2', 'vreemd@voorbeeld.nl')
     expect(await zoekSpelerBijGebruiker(testDb, 'g-2')).toBeNull()

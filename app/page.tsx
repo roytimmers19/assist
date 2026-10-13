@@ -88,7 +88,7 @@ export default async function Startpagina() {
       : null
 
   return (
-    <Schil naam={speler.naam} isLeider={speler.rol === 'leider'} tab="mij">
+    <Schil naam={speler.naam} isLeider={speler.magLeiden} tab="mij">
       {!eerste && (
         <section className="rounded-2xl border border-rand bg-paneel p-6">
           <h2 className="kopregel text-lg">Nog niets gepland</h2>

@@ -9,21 +9,21 @@ import {
 import type { Stand } from '@/lib/domein/types'
 
 function komt(spelerId: string): Stand {
-  return { spelerId, status: 'ja', bron: 'aanname', toelichting: null, gezetOp: null }
+  return { spelerId, status: 'ja', bron: 'aanname', toelichting: null, gezetDoor: null, gezetOp: null }
 }
 
 function afgemeld(spelerId: string): Stand {
-  return { spelerId, status: 'nee', bron: 'speler', toelichting: null, gezetOp: new Date() }
+  return { spelerId, status: 'nee', bron: 'speler', toelichting: null, gezetDoor: spelerId, gezetOp: new Date() }
 }
 
 /** Zegt 'ja' voor dit ene event, tegen zijn standaard in. */
 function meldtZichAan(spelerId: string): Stand {
-  return { spelerId, status: 'ja', bron: 'speler', toelichting: null, gezetOp: new Date() }
+  return { spelerId, status: 'ja', bron: 'speler', toelichting: null, gezetDoor: spelerId, gezetOp: new Date() }
 }
 
 /** Doet dit soort event structureel niet, en zei er zelf niets over. */
 function doetNietMee(spelerId: string): Stand {
-  return { spelerId, status: 'nee', bron: 'aanname', toelichting: null, gezetOp: null }
+  return { spelerId, status: 'nee', bron: 'aanname', toelichting: null, gezetDoor: null, gezetOp: null }
 }
 
 function opVeld(slot: number, spelerId: string) {

@@ -76,4 +76,32 @@ describe('spelersbeheer', () => {
 
     expect(await zoekSpelerOpRugnummer(testDb, 7)).toBeNull()
   })
+
+  // Het vakje "Leider" schrijft de rol. Het beheerdersrecht staat daar los van
+  // en blijft staan, wat een leider ook aan- of uitvinkt.
+  it('laat het beheerdersrecht staan als een leider de rij bewerkt', async () => {
+    const aap = await maakSpeler(testDb, { naam: 'Aap', email: 'aap@voorbeeld.nl' })
+    await testDb.update(spelers).set({ beheerder: true }).where(eq(spelers.id, aap.id))
+
+    await wijzigSpeler(testDb, aap.id, { weergavenaam: 'Aapje', rol: 'leider' })
+    await wijzigSpeler(testDb, aap.id, { rol: 'speler' })
+
+    const [na] = await testDb.select().from(spelers).where(eq(spelers.id, aap.id))
+    expect(na).toMatchObject({ weergavenaam: 'Aapje', rol: 'speler', beheerder: true })
+  })
+
+  it('geeft een nieuwe speler geen beheerdersrecht', async () => {
+    const noot = await maakSpeler(testDb, { naam: 'Noot', email: 'noot@voorbeeld.nl' })
+    expect(noot.beheerder).toBe(false)
+  })
+
+  it('laat het recht met de spelersrij verdwijnen', async () => {
+    const aap = await maakSpeler(testDb, { naam: 'Aap', email: 'aap@voorbeeld.nl' })
+    await testDb.update(spelers).set({ beheerder: true }).where(eq(spelers.id, aap.id))
+
+    await testDb.delete(spelers).where(eq(spelers.id, aap.id))
+
+    const beheerders = await testDb.select().from(spelers).where(eq(spelers.beheerder, true))
+    expect(beheerders).toEqual([])
+  })
 })
