@@ -14,10 +14,19 @@ Wie zijn wachtwoord kwijt is valt vandaag tussen die twee vragen in. Hij is
 niemand meer voor de app, terwijl zijn spelersrij er gewoon staat. Het antwoord
 mag nooit zijn dat iemand met de hand in de productiedatabase gaat.
 
+Daarna volgt een derde vraag: wat mag je. Een speler ziet zijn eigen scherm, een
+leider ook de leidersschermen. Daarnaast is er de **beheerder**: een speler die
+alles kan wat een leider kan, maar in de ploeg gewoon als speler staat. Dat is
+voor de eigenaar, die de app beheert en wil kunnen helpen zonder als extra
+leider in de ploeg te staan. Het recht staat alleen in de database. De eigenaar
+zet het daar met de hand aan of uit: bij een kwijt wachtwoord is dat precies
+wat niet mag, maar hier is het de bedoeling.
+
 ### Bouw
 
 - **Bestanden:** `lib/auth/auth.ts` (Better Auth-configuratie),
-  `lib/auth/sessie.ts` (identiteit wordt rechten), `lib/auth/uitnodiging.ts`
+  `lib/auth/sessie.ts` (identiteit wordt rechten), `lib/domein/rechten.ts`
+  (puur: wie op de leidersschermen mag), `lib/auth/uitnodiging.ts`
   (token maken, innemen, zelf aanmelden), `lib/auth/herstel.ts` (een
   herstellink laten maken en opvangen), `app/acties/toetreden.ts`,
   `app/acties/toegang.ts`, `app/_onderdelen/Toegang.tsx`, en de schermen
@@ -39,7 +48,17 @@ mag nooit zijn dat iemand met de hand in de productiedatabase gaat.
   - Een herstellink werkt voor wie hem heeft. Met mail is dat de speler zelf;
     zonder mail is dat de leider, en daarmee kan hij als die speler binnenkomen.
     Dat is bewust betaald: de leider voegt spelers toe, keurt ze goed en maakt
-    uitnodigingen, dus hij beheert die accounts toch al.
+    uitnodigingen, dus hij beheert die accounts toch al. Voor een beheerder
+    geldt hetzelfde: hij heeft precies de rechten van een leider, dus wie zo
+    binnenkomt krijgt er niets bij.
+  - Op de leidersschermen mag wie de rol leider heeft, en wie het
+    beheerdersrecht heeft. `magLeiden` beslist dat, en het is de enige plek.
+    Een pagina of actie vraagt de sessie of iemand mag leiden. Naar de rol
+    kijkt hij niet zelf.
+  - De rol en het beheerdersrecht staan los van elkaar. Het vakje "Leider" en
+    het label "leider" laten alleen de rol zien. Een leider kan het
+    beheerdersrecht niet zien, geven of afnemen. Dat de andere leiders niet
+    weten wie het heeft, is een bewuste keuze van de eigenaar.
 
 ## Contract
 
@@ -56,6 +75,14 @@ mag nooit zijn dat iemand met de hand in de productiedatabase gaat.
       `RESEND_API_KEY` en `MAIL_AFZENDER` gezet zijn, verschijnt het formulier
       op `/wachtwoord-vergeten` en gaat dezelfde link per mail. De knop van de
       leider blijft dan bestaan voor wie zijn mail niet vindt.
+- [ ] Een speler met het beheerdersrecht en de rol speler komt op elk
+      leidersscherm en kan daar alles wat een leider kan. Dat geldt ook voor
+      de afbeelding van de opstelling.
+- [ ] In het spelersoverzicht staat een beheerder zonder label "leider" en
+      met het vakje "Leider" uit.
+- [ ] Bewerkt en bewaart een leider de rij van een beheerder, dan blijft het
+      beheerdersrecht staan, ook als de leider het vakje "Leider" aan of uit
+      zet.
 
 ### Wat nooit mag breken
 
@@ -74,6 +101,13 @@ mag nooit zijn dat iemand met de hand in de productiedatabase gaat.
 - Een herstel sluit elke lopende sessie van dat account af. Een overname via
   een herstellink is daarmee niet tegengehouden, maar wel te merken: de speler
   vliegt eruit en moet opnieuw inloggen.
+- Wie de rol speler heeft en geen beheerdersrecht, komt niet op een
+  leidersscherm en kan geen leidersactie doen.
+- Geen scherm en geen serveractie kan het beheerdersrecht zetten of afnemen.
+  Wie het heeft, staat nergens in de code of de repository: de eigenaar zet
+  het met de hand in de database.
+- Het beheerdersrecht hoort bij de spelersrij. Verdwijnt de speler, dan
+  verdwijnt het recht mee.
 - De databasetests draaien nooit tegen iets anders dan de testdatabase.
   `tests/db/opzet.ts` zet `DATABASE_URL` gelijk aan `DATABASE_URL_TEST` voordat
   Better Auth geladen wordt, want die pakt zijn verbinding uit de eerste.
@@ -135,6 +169,85 @@ Scenario: Twee aanvragen die door elkaar lopen raken elkaars link niet kwijt
 ```
 
 Bewezen door: `tests/domein/herstel.test.ts`
+
+```gherkin
+Scenario: Een beheerder mag leiden
+  Gegeven dat aap de rol speler heeft en het beheerdersrecht
+  Als de app bepaalt of aap op de leidersschermen mag
+  Dan mag hij dat
+```
+
+Bewezen door: `tests/domein/rechten.test.ts`
+
+```gherkin
+Scenario: Een speler zonder het recht blijft buiten
+  Gegeven dat noot de rol speler heeft en geen beheerdersrecht
+  Als de app bepaalt of noot op de leidersschermen mag
+  Dan mag hij dat niet
+```
+
+Bewezen door: `tests/domein/rechten.test.ts`
+
+```gherkin
+Scenario: De sessie kent het beheerdersrecht
+  Gegeven dat aap het beheerdersrecht heeft
+  Als zijn spelersrij bij zijn account wordt opgezocht
+  Dan staat het beheerdersrecht erbij
+```
+
+Bewezen door: `tests/db/sessie.test.ts`
+
+```gherkin
+Scenario: Een leider bewerkt de rij van een beheerder
+  Gegeven dat aap het beheerdersrecht heeft
+  Als mies, een leider, zijn rij bewerkt en het vakje "Leider" aan en weer uit
+  zet
+  Dan heeft aap daarna nog steeds het beheerdersrecht
+```
+
+Bewezen door: `tests/db/spelersbeheer.test.ts`
+
+```gherkin
+Scenario: Verdwijnt de speler, dan verdwijnt het recht mee
+  Gegeven dat aap het beheerdersrecht heeft
+  Als zijn spelersrij verdwijnt
+  Dan heeft niemand dat recht meer via die rij
+```
+
+Bewezen door: `tests/db/spelersbeheer.test.ts`
+
+De drie scenario's hieronder zijn schermen, en deze repository test geen
+schermen. Ze zijn met de hand nagelopen op een lege lokale database; staat er
+ooit wel een schermtest, dan horen ze daar thuis.
+
+```gherkin
+Scenario: Voor andere leiders is een beheerder een gewone speler
+  Gegeven dat aap de rol speler heeft en het beheerdersrecht
+  Als mies, een leider, het spelersoverzicht bekijkt
+  Dan staat aap er zonder label "leider"
+  En staat het vakje "Leider" bij aap uit
+```
+
+Nagelopen met de hand.
+
+```gherkin
+Scenario: Een beheerder komt op de leidersschermen
+  Gegeven dat aap de rol speler heeft en het beheerdersrecht
+  Als hij de leidersschermen opent, ook de afbeelding van een opstelling
+  Dan komt hij erop
+  En ziet hij in de navigatie wat een leider ziet
+```
+
+Nagelopen met de hand.
+
+```gherkin
+Scenario: Het recht is nergens in de app te zetten
+  Gegeven een leider in het spelersoverzicht
+  Als hij de rij van een speler openklapt
+  Dan staat er geen vakje of knop voor het beheerdersrecht
+```
+
+Nagelopen met de hand.
 
 De twee scenario's hieronder zijn schermen, en deze repository test geen
 schermen. Ze zijn met de hand nagelopen op een lege lokale database; staat er
