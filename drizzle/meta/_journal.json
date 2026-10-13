@@ -50,6 +50,13 @@
       "when": 1788249626299,
       "tag": "0006_strange_hiroim",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791913675972,
+      "tag": "0007_young_manta",
+      "breakpoints": true
     }
   ]
 }

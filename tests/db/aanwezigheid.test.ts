@@ -39,7 +39,12 @@ describe('aanwezigheid vastleggen', () => {
 
     const meldingen = await leesMeldingen(testDb, [event.id])
     const stand = actueleStand([{ id: speler.id, standaard: 'ja' }], meldingen.get(event.id) ?? [])
-    expect(stand[0]).toMatchObject({ status: 'nee', bron: 'speler', toelichting: 'rug' })
+    expect(stand[0]).toMatchObject({
+      status: 'nee',
+      bron: 'speler',
+      toelichting: 'rug',
+      gezetDoor: speler.id,
+    })
   })
 
   it('schrijft geen tweede rij als de stand niet verandert', async () => {

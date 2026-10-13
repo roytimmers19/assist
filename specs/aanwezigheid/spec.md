@@ -32,6 +32,10 @@ bepaalt of hij moet bellen, schuiven of niets hoeft te doen.
   - De toelichting heet in het scherm _reden_. Verplicht is hij alleen bij
     afmelden door de speler zelf; dat dwingen de actie en het formulier af, niet
     de database.
+  - Een melding onthoudt wie hem zette. Het leiderscherm toont "door jou gezet"
+    alleen aan wie het zelf deed. Andere leiders zien "door een leider gezet".
+    Dat geldt ook als een beheerder hem zette (zie de spec van toegang), en als
+    niet meer te achterhalen is wie het was.
 
 ## Contract
 
@@ -52,6 +56,8 @@ bepaalt of hij moet bellen, schuiven of niets hoeft te doen.
 - Een afmelding van een speler draagt altijd een reden die meer is dan spaties.
   Oudere afmeldingen en afmeldingen door een leider mogen zonder.
 - Aanmelden vraagt nooit om een reden.
+- Een leider leest nooit "door jou gezet" bij een melding die iemand anders
+  zette.
 
 ### Scenario's
 
@@ -105,3 +111,22 @@ Scenario: de leider zet iemand af zonder reden
 
 Nog niet bewezen: de leideractie draait alleen met een sessie, en daar is geen
 test voor.
+
+```gherkin
+Scenario: wie het zelf zette leest "door jou gezet"
+  Gegeven dat mies, een leider, noot op nee zette
+  Als mies het leiderscherm bekijkt
+  Dan staat er bij noot "door jou gezet"
+```
+
+Bewezen door: `tests/domein/aanwezigheid.test.ts`
+
+```gherkin
+Scenario: een andere leider leest "door een leider gezet"
+  Gegeven dat aap, een beheerder of een leider, noot op nee zette
+  Als mies, een andere leider, het leiderscherm bekijkt
+  Dan staat er bij noot "door een leider gezet"
+  En nergens wie het was
+```
+
+Bewezen door: `tests/domein/aanwezigheid.test.ts`

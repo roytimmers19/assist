@@ -2,12 +2,14 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db/client'
 import { zoekSpelerBijGebruiker } from '@/lib/db/spelers'
+import { magLeiden } from '@/lib/domein/rechten'
 import { auth } from './auth'
 
 export type HuidigeSpeler = {
   id: string
   naam: string
-  rol: 'speler' | 'leider'
+  /** Leider of beheerder. De rol zelf staat hier bewust niet. */
+  magLeiden: boolean
   accountStatus: 'uitgenodigd' | 'wacht_op_goedkeuring' | 'actief'
 }
 
@@ -36,7 +38,7 @@ export async function huidigeSpeler(): Promise<HuidigeSpeler | null> {
   return {
     id: speler.id,
     naam: speler.weergavenaam ?? speler.naam,
-    rol: speler.rol,
+    magLeiden: magLeiden(speler),
     accountStatus: speler.accountStatus,
   }
 }
@@ -52,6 +54,6 @@ export async function vereisLeider(): Promise<HuidigeSpeler> {
   const speler = await vereisSpeler()
   // Geen foutpagina maar terug naar het eigen scherm: een speler die hier
   // per ongeluk komt hoeft niet te weten dat deze pagina bestaat.
-  if (speler.rol !== 'leider') redirect('/')
+  if (!speler.magLeiden) redirect('/')
   return speler
 }

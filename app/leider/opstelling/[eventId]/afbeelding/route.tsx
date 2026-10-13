@@ -15,7 +15,7 @@ export async function GET(_verzoek: Request, { params }: { params: Promise<{ eve
   // Geen redirect maar een status: dit wordt met fetch opgehaald en een
   // inlogpagina als antwoord zou stilletjes als kapotte afbeelding eindigen.
   const speler = await huidigeSpeler()
-  if (!speler || speler.rol !== 'leider' || speler.accountStatus !== 'actief') {
+  if (!speler || !speler.magLeiden || speler.accountStatus !== 'actief') {
     return new Response('Geen toegang', { status: 403 })
   }
 

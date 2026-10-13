@@ -141,6 +141,7 @@ export default async function Weekoverzicht({
                   meldingen.get(event.id) ?? [],
                 )}
                 spelers={spelers}
+                kijkerId={leider.id}
                 afwezig={spelers.filter((s) => weg.has(s.id))}
                 diensten={{
                   materiaal: (dienstenPerEvent.get(event.id) ?? [])

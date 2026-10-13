@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { actueleStand } from '@/lib/domein/aanwezigheid'
-import type { Melding } from '@/lib/domein/types'
+import { actueleStand, gezetDoorTekst } from '@/lib/domein/aanwezigheid'
+import type { Melding, Stand } from '@/lib/domein/types'
 
 const melding = (
   spelerId: string,
@@ -8,13 +8,21 @@ const melding = (
   bron: 'speler' | 'leider',
   gezetOp: string,
   toelichting: string | null = null,
-): Melding => ({ spelerId, status, bron, toelichting, gezetOp: new Date(gezetOp) })
+  gezetDoor: string | null = bron === 'speler' ? spelerId : 'leider',
+): Melding => ({ spelerId, status, bron, toelichting, gezetDoor, gezetOp: new Date(gezetOp) })
 
 describe('actueleStand', () => {
   it('zet een speler zonder enige melding op ja met bron aanname', () => {
     const stand = actueleStand([{ id: 'bas', standaard: 'ja' }], [])
     expect(stand).toEqual([
-      { spelerId: 'bas', status: 'ja', bron: 'aanname', toelichting: null, gezetOp: null },
+      {
+        spelerId: 'bas',
+        status: 'ja',
+        bron: 'aanname',
+        toelichting: null,
+        gezetDoor: null,
+        gezetOp: null,
+      },
     ])
   })
 
@@ -32,6 +40,7 @@ describe('actueleStand', () => {
         status: 'nee',
         bron: 'leider',
         toelichting: 'ziek gemeld via mij',
+        gezetDoor: 'leider',
         gezetOp: new Date('2026-09-06T08:40:00Z'),
       },
     ])
@@ -64,7 +73,14 @@ describe('actueleStand met een standaard', () => {
   it('zet wie structureel niet meedoet op nee met bron aanname', () => {
     const stand = actueleStand([{ id: 'bas', standaard: 'nee' }], [])
     expect(stand).toEqual([
-      { spelerId: 'bas', status: 'nee', bron: 'aanname', toelichting: null, gezetOp: null },
+      {
+        spelerId: 'bas',
+        status: 'nee',
+        bron: 'aanname',
+        toelichting: null,
+        gezetDoor: null,
+        gezetOp: null,
+      },
     ])
   })
 
@@ -99,5 +115,37 @@ describe('actueleStand met een standaard', () => {
 
   it('geeft een lege lijst terug zonder spelers', () => {
     expect(actueleStand([], [])).toEqual([])
+  })
+})
+
+describe('gezetDoorTekst', () => {
+  const stand = (bron: Stand['bron'], gezetDoor: string | null): Stand => ({
+    spelerId: 'noot',
+    status: 'nee',
+    bron,
+    toelichting: null,
+    gezetDoor,
+    gezetOp: bron === 'aanname' ? null : new Date('2026-09-05T10:00:00Z'),
+  })
+
+  it('zegt "door jou gezet" tegen wie het zelf zette', () => {
+    expect(gezetDoorTekst(stand('leider', 'mies'), 'mies')).toBe('door jou gezet')
+  })
+
+  // Of aap nu leider of beheerder is: mies leest niet wie het was.
+  it('zegt "door een leider gezet" tegen een andere leider', () => {
+    expect(gezetDoorTekst(stand('leider', 'aap'), 'mies')).toBe('door een leider gezet')
+  })
+
+  it('zegt "door een leider gezet" als niet meer te achterhalen is wie het was', () => {
+    expect(gezetDoorTekst(stand('leider', null), 'mies')).toBe('door een leider gezet')
+  })
+
+  it('zegt niets bij een melding van de speler zelf', () => {
+    expect(gezetDoorTekst(stand('speler', 'noot'), 'mies')).toBeNull()
+  })
+
+  it('zegt niets bij een aanname', () => {
+    expect(gezetDoorTekst(stand('aanname', null), 'mies')).toBeNull()
   })
 })

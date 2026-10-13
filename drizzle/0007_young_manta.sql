@@ -1,0 +1,1 @@
+ALTER TABLE "speler" ADD COLUMN "beheerder" boolean DEFAULT false NOT NULL;

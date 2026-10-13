@@ -45,6 +45,8 @@ export type Melding = {
   status: Status
   bron: 'speler' | 'leider'
   toelichting: string | null
+  /** Wie hem zette. Leeg als die speler verdwenen is. */
+  gezetDoor: string | null
   gezetOp: Date
 }
 
@@ -53,5 +55,6 @@ export type Stand = {
   status: Status
   bron: Bron
   toelichting: string | null
+  gezetDoor: string | null
   gezetOp: Date | null
 }
