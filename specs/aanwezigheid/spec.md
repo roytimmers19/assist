@@ -1,9 +1,8 @@
 # Feature: aanwezigheid
 
 Deze spec beschrijft de kern van het domein: hoe een melding de stand bepaalt,
-en wat een speler en een leider daarbij moeten invullen. De afmeldtermijn en
-het te laat afmelden (`lib/domein/telaat.ts`) worden beschreven zodra een issue
-ze raakt. Langdurige afwezigheid is een eigen domein.
+wat een speler en een leider daarbij moeten invullen, en tot wanneer afmelden
+op tijd is. Langdurige afwezigheid is een eigen domein.
 
 ## Blueprint
 
@@ -36,6 +35,13 @@ bepaalt of hij moet bellen, schuiven of niets hoeft te doen.
     alleen aan wie het zelf deed. Andere leiders zien "door een leider gezet".
     Dat geldt ook als een beheerder hem zette (zie de spec van toegang), en als
     niet meer te achterhalen is wie het was.
+  - De afmeldgrens (`lib/domein/telaat.ts`) is voorlopig een vaste weekdag om
+    23:59:59 in `Europe/Amsterdam`: de dinsdag vóór een wedstrijd en de
+    woensdag vóór een training. Eén functie bepaalt hem voor alles wat hem
+    toont of gebruikt: de tekst op het beginscherm, het app-bericht van de
+    leider en het stempel "te laat". De `afmeld_deadline` per event, in uren
+    uit `eventtype_instelling`, neemt dit over zodra de boetepot komt.
+  - Te laat afmelden is een stempel, geen slot: afmelden blijft altijd kunnen.
 
 ## Contract
 
@@ -58,6 +64,10 @@ bepaalt of hij moet bellen, schuiven of niets hoeft te doen.
 - Aanmelden vraagt nooit om een reden.
 - Een leider leest nooit "door jou gezet" bij een melding die iemand anders
   zette.
+- De afmeldgrens valt altijd vóór de aanvang van het event. Valt de grensdag
+  van dezelfde week erna, dan telt die van de week ervoor.
+- De afmeldgrens is een wandkloktijd: dinsdag 23:59 blijft dinsdag 23:59 over
+  een zomer-wintertijdovergang heen.
 
 ### Scenario's
 
@@ -130,3 +140,23 @@ Scenario: een andere leider leest "door een leider gezet"
 ```
 
 Bewezen door: `tests/domein/aanwezigheid.test.ts`
+
+```gherkin
+Scenario: voor een zondagwedstrijd afmelden kan tot en met dinsdag
+  Gegeven een wedstrijd op zondag
+  Als een speler zich dinsdagavond afmeldt
+  Dan is hij op tijd
+  Maar meldt hij zich woensdag af, dan staat er "te laat" bij zijn naam
+```
+
+Bewezen door: `tests/domein/telaat.test.ts`
+
+```gherkin
+Scenario: voor een donderdagtraining afmelden kan tot en met woensdag
+  Gegeven een training op donderdag
+  Als een speler zich woensdagavond afmeldt
+  Dan is hij op tijd
+  Maar meldt hij zich donderdag af, dan staat er "te laat" bij zijn naam
+```
+
+Bewezen door: `tests/domein/telaat.test.ts`
