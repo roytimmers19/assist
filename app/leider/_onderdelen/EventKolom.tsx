@@ -85,16 +85,14 @@ export function EventKolom({
   // hier, anders lijkt het elke week alsof er iemand afhaakt.
   const afgemeld = stand.filter((s) => s.status === 'nee' && s.bron !== 'aanname')
   const doetNietMee = stand.filter((s) => s.status === 'nee' && s.bron === 'aanname')
-  const teLaatAantal = afgemeld.filter((s) =>
-    isTeLaatAfgemeld(s.gezetOp ?? null, event.startOp),
-  ).length
+  const teLaatAantal = afgemeld.filter((s) => isTeLaatAfgemeld(s.gezetOp ?? null, event)).length
   const bevestigd = stand.filter((s) => s.status === 'ja' && s.bron !== 'aanname')
   const stil = stand.filter((s) => s.status === 'ja' && s.bron === 'aanname')
 
   const bericht = maakAppBericht({
     titel,
     wanneer: alsDagEnTijd(event.startOp),
-    deadline: alsDagZonderTijd(afmeldGrens(event.startOp)),
+    deadline: alsDagZonderTijd(afmeldGrens(event)),
     stilleNamen: stil.map((s) => spelerVan.get(s.spelerId)?.naam ?? '?'),
   })
 
@@ -102,7 +100,7 @@ export function EventKolom({
     const speler = spelerVan.get(regel.spelerId)
     const weg = regel.status === 'nee'
     const doorWie = gezetDoorTekst(regel, kijkerId)
-    const teLaat = weg && isTeLaatAfgemeld(regel.gezetOp ?? null, event.startOp)
+    const teLaat = weg && isTeLaatAfgemeld(regel.gezetOp ?? null, event)
 
     return (
       <li className="flex items-center gap-3 border-b border-rand/60 py-2 last:border-b-0">

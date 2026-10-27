@@ -31,7 +31,7 @@ export function MatchdayBlok({
   const kop = isWedstrijd ? (event.thuis ? 'Thuis' : 'Uit') : 'Training'
   const groot = isWedstrijd ? schoonTegenstander(event.tegenstander) : 'Training'
   const meedoen = status === 'ja'
-  const grens = afmeldGrens(event.startOp)
+  const grens = afmeldGrens(event)
   const deadlineVoorbij = grens.getTime() < Date.now()
 
   const dag = alsDagEnTijd(event.startOp).split(',')[0]
