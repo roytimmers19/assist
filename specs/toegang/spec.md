@@ -62,7 +62,7 @@ wat niet mag, maar hier is het de bedoeling.
   - Voor de boetepot zijn er twee vinkjes per speler: **penningmeester** en
     **boete-uitdeler**. Die zet een leider of de beheerder in het
     spelersoverzicht, en er mogen er meer zijn dan één. Ze geven geen toegang
-    tot de leidersschermen. `magBoetesGeven` en `magPotBeheren` in
+    tot de leidersschermen. `magBoetesGeven` en `magAfrekenen` in
     `lib/domein/rechten.ts` beslissen wat ze wel geven; wat dat precies is,
     staat in `specs/boetepot/spec.md`.
 
