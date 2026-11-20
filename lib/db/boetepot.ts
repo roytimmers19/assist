@@ -106,7 +106,8 @@ export async function laatVoorstelVallen(db: Db, voorstel: Voorstel, door: strin
 /**
  * Alles wat een voorstel nodig heeft.
  */
-export async function leesVoorstelInvoer(db: Db): Promise<VoorstelInvoer> {
+/** Welke vaste boete de app voorstelt bij te laat afmelden, per soort event. */
+export async function leesKoppelingen(db: Db): Promise<Koppeling[]> {
   const koppelingen: Koppeling[] = []
   for (const s of await leesBoetesoorten(db)) {
     if (!s.actief) continue
@@ -114,6 +115,23 @@ export async function leesVoorstelInvoer(db: Db): Promise<VoorstelInvoer> {
     if (s.teLaatWedstrijdOp) koppelingen.push({ type: 'wedstrijd', ...vast, gekoppeldOp: s.teLaatWedstrijdOp })
     if (s.teLaatTrainingOp) koppelingen.push({ type: 'training', ...vast, gekoppeldOp: s.teLaatTrainingOp })
   }
+  return koppelingen
+}
+
+/**
+ * `eventId:spelerId` waarvoor al een te-laat-boete bestaat die telt of is
+ * gevallen. Een ingetrokken boete telt niet: dan mag er een nieuw voorstel komen.
+ */
+export async function leesAfgehandeld(db: Db): Promise<Set<string>> {
+  const rijen = await db
+    .select({ eventId: boetes.eventId, spelerId: boetes.spelerId })
+    .from(boetes)
+    .where(and(eq(boetes.aanleiding, 'te_laat_afgemeld'), isNull(boetes.ingetrokkenOp)))
+  return new Set(rijen.map((r) => `${r.eventId}:${r.spelerId}`))
+}
+
+export async function leesVoorstelInvoer(db: Db): Promise<VoorstelInvoer> {
+  const koppelingen = await leesKoppelingen(db)
 
   const leeg: VoorstelInvoer = {
     events: [],
@@ -150,16 +168,13 @@ export async function leesVoorstelInvoer(db: Db): Promise<VoorstelInvoer> {
       ),
     )
 
-  const [meldingen, spelerRijen, teLaat] = await Promise.all([
+  const [meldingen, spelerRijen, afgehandeld] = await Promise.all([
     leesMeldingen(
       db,
       eventRijen.map((e) => e.id),
     ),
     leesActieveSpelers(db),
-    db
-      .select({ eventId: boetes.eventId, spelerId: boetes.spelerId })
-      .from(boetes)
-      .where(eq(boetes.aanleiding, 'te_laat_afgemeld')),
+    leesAfgehandeld(db),
   ])
 
   return {
@@ -171,7 +186,7 @@ export async function leesVoorstelInvoer(db: Db): Promise<VoorstelInvoer> {
     })),
     meldingen,
     koppelingen,
-    afgehandeld: new Set(teLaat.map((r) => `${r.eventId}:${r.spelerId}`)),
+    afgehandeld,
   }
 }
 

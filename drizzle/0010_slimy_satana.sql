@@ -1,0 +1,2 @@
+DROP INDEX "boete_te_laat_idx";--> statement-breakpoint
+CREATE UNIQUE INDEX "boete_te_laat_idx" ON "boete" USING btree ("event_id","speler_id") WHERE "boete"."aanleiding" = 'te_laat_afgemeld' and "boete"."ingetrokken_op" is null;

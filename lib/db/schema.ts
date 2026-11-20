@@ -318,10 +318,11 @@ export const boetes = pgTable(
     check('boete_omschrijving_gevuld', sql`length(btrim(${tabel.omschrijving})) > 0`),
     check('boete_bedrag_positief', sql`${tabel.bedragCent} > 0`),
     check('boete_aantal_positief', sql`${tabel.aantal} > 0`),
-    // Hooguit één boete voor te laat afmelden per speler per event, telt of gevallen.
+    // Hooguit één boete voor te laat afmelden per speler per event, telt of
+    // gevallen. Een ingetrokken boete telt niet mee: daarna mag er een nieuwe.
     uniqueIndex('boete_te_laat_idx')
       .on(tabel.eventId, tabel.spelerId)
-      .where(sql`${tabel.aanleiding} = 'te_laat_afgemeld'`),
+      .where(sql`${tabel.aanleiding} = 'te_laat_afgemeld' and ${tabel.ingetrokkenOp} is null`),
     index('boete_speler_idx').on(tabel.spelerId),
     index('boete_datum_idx').on(tabel.datum),
   ],

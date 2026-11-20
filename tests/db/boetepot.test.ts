@@ -280,6 +280,22 @@ describe('voorstellen bij te laat afmelden', () => {
     expect(voorstellen(await leesVoorstelInvoer(testDb))).toEqual([])
   })
 
+  it('doet opnieuw een voorstel als de bevestigde boete is ingetrokken, en laat opnieuw bevestigen toe', async () => {
+    const { mies } = await laatAapTeLaatAfmelden()
+    const [voorstel] = voorstellen(await leesVoorstelInvoer(testDb))
+    await bevestigVoorstel(testDb, voorstel, mies)
+    const [boete] = await leesBoetes(testDb)
+
+    await trekBoeteIn(testDb, boete.id, mies)
+
+    const [opnieuw] = voorstellen(await leesVoorstelInvoer(testDb))
+    expect(opnieuw).toBeDefined()
+    await bevestigVoorstel(testDb, opnieuw, mies)
+    const boetes = await leesBoetes(testDb)
+    expect(boetes).toHaveLength(2)
+    expect(boetes.filter((b) => b.ingetrokkenOp === null)).toHaveLength(1)
+  })
+
   it('laat een gevallen voorstel niet meer terugkomen en nergens meetellen', async () => {
     const { mies, aap } = await laatAapTeLaatAfmelden()
     const [voorstel] = voorstellen(await leesVoorstelInvoer(testDb))

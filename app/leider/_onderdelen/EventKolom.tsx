@@ -66,7 +66,7 @@ export function EventKolom({
   diensten,
   opstellingStatus = null,
   kijkerId,
-  voorstelCent = null,
+  voorstelBijKnop = () => null,
 }: {
   event: EventRij
   stand: Stand[]
@@ -78,8 +78,11 @@ export function EventKolom({
   opstellingStatus?: 'concept' | 'gepubliceerd' | null
   /** Wie kijkt: die leest "door jou gezet" bij wat hij zelf zette. */
   kijkerId: string
-  /** De vaste boete die de app voorstelt bij te laat afmelden voor dit event. */
-  voorstelCent?: number | null
+  /**
+   * Het boetevoorstel bij een knop: bij afmelden het voorstel dat dan komt,
+   * bij weer aanmelden het voorstel dat dan vervalt. Niets als er geen is.
+   */
+  voorstelBijKnop?: (spelerId: string, nuAfgemeld: boolean) => number | null
 }) {
   const spelerVan = new Map(spelers.map((s) => [s.id, s]))
   const naamVan = new Map(spelers.map((s) => [s.id, s.naam]))
@@ -152,7 +155,7 @@ export function EventKolom({
               ? teLaatVraag({
                   naam: speler?.naam ?? 'Deze speler',
                   naar: weg ? 'ja' : 'nee',
-                  voorstelCent: voorstelCent ?? null,
+                  voorstelCent: voorstelBijKnop(regel.spelerId, weg),
                 })
               : null
           }
