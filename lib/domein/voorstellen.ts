@@ -19,8 +19,12 @@ export type VoorstelInvoer = {
   /** Per event de meldingen, oudste eerst. */
   meldingen: Map<string, Melding[]>
   koppelingen: Koppeling[]
-  /** `eventId:spelerId` waarvoor al een te-laat-boete bestaat, telt of gevallen. */
-  afgehandeld: Set<string>
+  /**
+   * Per `eventId:spelerId` een te-laat-boete die er al is. `null`: hij telt of
+   * is gevallen, en er komt nooit meer een voorstel. Een datum: hij is toen
+   * ingetrokken, en alleen een afmelding van daarna geeft weer een voorstel.
+   */
+  afgehandeld: Map<string, Date | null>
 }
 
 export type Voorstel = {
@@ -58,7 +62,8 @@ export function voorstellen(invoer: VoorstelInvoer): Voorstel[] {
     const alleMeldingen = invoer.meldingen.get(event.id) ?? []
 
     for (const speler of invoer.spelers) {
-      if (invoer.afgehandeld.has(`${event.id}:${speler.id}`)) continue
+      const eerder = invoer.afgehandeld.get(`${event.id}:${speler.id}`)
+      if (eerder === null) continue
 
       const eigen = alleMeldingen
         .filter((m) => m.spelerId === speler.id)
@@ -76,6 +81,7 @@ export function voorstellen(invoer: VoorstelInvoer): Voorstel[] {
 
       if (afmelding.gezetOp.getTime() <= grens) continue
       if (afmelding.gezetOp.getTime() < koppeling.gekoppeldOp.getTime()) continue
+      if (eerder && afmelding.gezetOp.getTime() <= eerder.getTime()) continue
 
       uit.push({
         eventId: event.id,

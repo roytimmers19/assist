@@ -280,14 +280,29 @@ describe('voorstellen bij te laat afmelden', () => {
     expect(voorstellen(await leesVoorstelInvoer(testDb))).toEqual([])
   })
 
-  it('doet opnieuw een voorstel als de bevestigde boete is ingetrokken, en laat opnieuw bevestigen toe', async () => {
-    const { mies } = await laatAapTeLaatAfmelden()
+  it('doet na intrekken pas weer een voorstel bij een nieuwe te late afmelding, en laat opnieuw bevestigen toe', async () => {
+    const { mies, aap, eventId } = await laatAapTeLaatAfmelden()
     const [voorstel] = voorstellen(await leesVoorstelInvoer(testDb))
     await bevestigVoorstel(testDb, voorstel, mies)
     const [boete] = await leesBoetes(testDb)
 
     await trekBoeteIn(testDb, boete.id, mies)
+    // Alleen intrekken: hij stond al afgemeld, dus geen nieuw voorstel.
+    expect(voorstellen(await leesVoorstelInvoer(testDb))).toEqual([])
 
+    // Weer aangemeld en opnieuw te laat afgemeld: dan wel.
+    const straks = new Date(Date.now() + 60_000)
+    await testDb.insert(aanwezigheid).values([
+      { eventId, spelerId: aap, status: 'ja', bron: 'leider', gezetOp: straks, gezetDoorSpelerId: mies },
+      {
+        eventId,
+        spelerId: aap,
+        status: 'nee',
+        bron: 'leider',
+        gezetOp: new Date(straks.getTime() + 60_000),
+        gezetDoorSpelerId: mies,
+      },
+    ])
     const [opnieuw] = voorstellen(await leesVoorstelInvoer(testDb))
     expect(opnieuw).toBeDefined()
     await bevestigVoorstel(testDb, opnieuw, mies)

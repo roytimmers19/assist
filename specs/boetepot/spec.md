@@ -154,7 +154,8 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
 - Voor dezelfde speler bij hetzelfde event bestaat hooguit één boete voor te
   laat afmelden die niet is ingetrokken. Een voorstel dat bevestigd is of is
   gevallen, komt niet terug. Wordt de bevestigde boete ingetrokken, dan levert
-  een nieuwe te late afmelding weer een voorstel op.
+  pas een nieuwe te late afmelding ná het intrekken weer een voorstel op;
+  alleen intrekken brengt het oude voorstel niet terug.
 - De boetepot werkt nooit met terugwerkende kracht: een afmelding van vóór de
   koppeling levert geen voorstel op. Gaat een vaste boete van de lijst, dan gaat
   zijn koppeling mee weg; terugzetten koppelt hem niet vanzelf opnieuw.
