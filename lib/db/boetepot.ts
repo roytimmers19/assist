@@ -119,15 +119,28 @@ export async function leesKoppelingen(db: Db): Promise<Koppeling[]> {
 }
 
 /**
- * `eventId:spelerId` waarvoor al een te-laat-boete bestaat die telt of is
- * gevallen. Een ingetrokken boete telt niet: dan mag er een nieuw voorstel komen.
+ * De te-laat-boetes die er al zijn, per `eventId:spelerId`. Een boete die telt
+ * of is gevallen blokkeert voorgoed (`null`). Een ingetrokken boete blokkeert
+ * alleen afmeldingen tot het moment van intrekken: wie daarna opnieuw te laat
+ * wordt afgemeld, krijgt weer een voorstel.
  */
-export async function leesAfgehandeld(db: Db): Promise<Set<string>> {
+export async function leesAfgehandeld(db: Db): Promise<Map<string, Date | null>> {
   const rijen = await db
-    .select({ eventId: boetes.eventId, spelerId: boetes.spelerId })
+    .select({ eventId: boetes.eventId, spelerId: boetes.spelerId, ingetrokkenOp: boetes.ingetrokkenOp })
     .from(boetes)
-    .where(and(eq(boetes.aanleiding, 'te_laat_afgemeld'), isNull(boetes.ingetrokkenOp)))
-  return new Set(rijen.map((r) => `${r.eventId}:${r.spelerId}`))
+    .where(eq(boetes.aanleiding, 'te_laat_afgemeld'))
+
+  const uit = new Map<string, Date | null>()
+  for (const r of rijen) {
+    const sleutel = `${r.eventId}:${r.spelerId}`
+    const eerder = uit.get(sleutel)
+    if (eerder === null || r.ingetrokkenOp === null) {
+      uit.set(sleutel, null)
+    } else if (!eerder || r.ingetrokkenOp > eerder) {
+      uit.set(sleutel, r.ingetrokkenOp)
+    }
+  }
+  return uit
 }
 
 export async function leesVoorstelInvoer(db: Db): Promise<VoorstelInvoer> {
@@ -138,7 +151,7 @@ export async function leesVoorstelInvoer(db: Db): Promise<VoorstelInvoer> {
     spelers: [],
     meldingen: new Map(),
     koppelingen,
-    afgehandeld: new Set(),
+    afgehandeld: new Map(),
   }
   if (koppelingen.length === 0) return leeg
 

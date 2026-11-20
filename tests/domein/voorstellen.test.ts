@@ -48,7 +48,7 @@ function invoer(meldingen: Melding[], extra: Partial<VoorstelInvoer> = {}): Voor
     spelers: [komt],
     meldingen: new Map([[wedstrijd.id, meldingen]]),
     koppelingen: [koppeling],
-    afgehandeld: new Set(),
+    afgehandeld: new Map(),
     ...extra,
   }
 }
@@ -144,9 +144,27 @@ describe('voorstellen bij te laat afmelden', () => {
 
   it('stelt niets voor als er al een te-laat-boete is, bevestigd of gevallen', () => {
     const uit = voorstellen(
-      invoer([melding('nee', woensdag)], { afgehandeld: new Set(['w-1:aap']) }),
+      invoer([melding('nee', woensdag)], { afgehandeld: new Map([['w-1:aap', null]]) }),
     )
     expect(uit).toEqual([])
+  })
+
+  it('stelt niets voor over een afmelding van vóór een ingetrokken boete', () => {
+    const uit = voorstellen(
+      invoer([melding('nee', woensdag)], {
+        afgehandeld: new Map([['w-1:aap', new Date('2026-11-18T11:00:00Z')]]),
+      }),
+    )
+    expect(uit).toEqual([])
+  })
+
+  it('stelt wel weer iets voor over een afmelding van ná een ingetrokken boete', () => {
+    const uit = voorstellen(
+      invoer([melding('nee', woensdag), melding('ja', woensdagLater), melding('nee', woensdagNogLater)], {
+        afgehandeld: new Map([['w-1:aap', woensdagLater]]),
+      }),
+    )
+    expect(uit).toMatchObject([{ spelerId: 'aap', afgemeldOp: woensdagNogLater }])
   })
 
   it('houdt spelers bij hetzelfde event uit elkaar', () => {
@@ -180,7 +198,7 @@ describe('krijgtVoorstel: wat er zou gebeuren als een leider nu afmeldt', () => 
 
   it('zegt nee als er al een te-laat-boete is', () => {
     expect(
-      krijgtVoorstel(invoer([melding('ja', maandag)], { afgehandeld: new Set(['w-1:aap']) }), 'w-1', 'aap', nu),
+      krijgtVoorstel(invoer([melding('ja', maandag)], { afgehandeld: new Map([['w-1:aap', null]]) }), 'w-1', 'aap', nu),
     ).toBeNull()
   })
 
