@@ -9,7 +9,8 @@ import { alsEuro } from '@/lib/weergave/geld'
 
 export const dynamic = 'force-dynamic'
 
-const veld = 'min-h-11 rounded-xl border border-rand bg-paneel-op px-4 text-sm placeholder:text-zacht/70'
+const veld =
+  'min-h-11 rounded-xl border border-rand bg-paneel-op px-4 text-sm placeholder:text-zacht/70'
 const kleineKnop =
   'min-h-11 rounded-xl border border-rand px-3 text-xs text-zacht transition-colors hover:border-club-op/60 hover:text-tekst'
 
@@ -60,7 +61,10 @@ export default async function VasteBoetes({
               <details className="group">
                 <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 py-2 [&::-webkit-details-marker]:hidden">
                   <span className="kopregel min-w-0 flex-1 truncate text-sm">{s.omschrijving}</span>
-                  <span className="cijfers text-sm">{alsEuro(s.bedragCent)}</span>
+                  <span className="cijfers text-sm">
+                    {alsEuro(s.bedragCent)}
+                    {s.perStuk && <span className="text-zacht"> per stuk</span>}
+                  </span>
                   <span className="bovenkop text-zacht group-open:text-club-op">bewerk</span>
                 </summary>
                 <div className="mb-3 flex flex-col gap-2 rounded-xl bg-paneel-op/50 p-3">
@@ -79,13 +83,26 @@ export default async function VasteBoetes({
                       aria-label="Bedrag in euro"
                       className={`${veld} cijfers w-24`}
                     />
+                    <label className="flex min-h-11 items-center gap-2 text-sm text-zacht">
+                      <input
+                        type="checkbox"
+                        name="perStuk"
+                        value="ja"
+                        defaultChecked={s.perStuk}
+                        className="size-4 accent-club"
+                      />
+                      Per stuk
+                    </label>
                     <Knop toon="club" vol={false}>
                       Opslaan
                     </Knop>
                   </form>
                   <p className="text-xs text-zacht">
-                    Een ander bedrag geldt voor nieuwe boetes. Boetes die al gegeven zijn, blijven wat ze
-                    waren.
+                    Per stuk: bij geven kies je een aantal, zoals twintig tegengoals.
+                  </p>
+                  <p className="text-xs text-zacht">
+                    Een ander bedrag geldt voor nieuwe boetes. Boetes die al gegeven zijn, blijven
+                    wat ze waren.
                   </p>
                   <form action={zetVasteBoeteActief}>
                     <input type="hidden" name="soortId" value={s.id} />
@@ -97,9 +114,27 @@ export default async function VasteBoetes({
           ))}
         </ul>
 
-        <form action={bewaarVasteBoete} className="mt-3 flex flex-wrap gap-2 border-t border-rand pt-3">
-          <input name="omschrijving" placeholder="Nieuwe boete" aria-label="Nieuwe boete" className={`${veld} min-w-0 flex-1`} />
-          <input name="bedrag" inputMode="decimal" placeholder="€" aria-label="Bedrag in euro" className={`${veld} cijfers w-20`} />
+        <form
+          action={bewaarVasteBoete}
+          className="mt-3 flex flex-wrap gap-2 border-t border-rand pt-3"
+        >
+          <input
+            name="omschrijving"
+            placeholder="Nieuwe boete"
+            aria-label="Nieuwe boete"
+            className={`${veld} min-w-0 flex-1`}
+          />
+          <input
+            name="bedrag"
+            inputMode="decimal"
+            placeholder="€"
+            aria-label="Bedrag in euro"
+            className={`${veld} cijfers w-20`}
+          />
+          <label className="flex min-h-11 items-center gap-2 text-sm text-zacht">
+            <input type="checkbox" name="perStuk" value="ja" className="size-4 accent-club" />
+            Per stuk
+          </label>
           <Knop toon="club" vol={false}>
             Voeg toe
           </Knop>
@@ -111,7 +146,9 @@ export default async function VasteBoetes({
             <ul className="mt-1 flex flex-col">
               {uit.map((s) => (
                 <li key={s.id} className="flex min-h-12 items-center gap-3">
-                  <span className="min-w-0 flex-1 truncate text-sm text-zacht">{s.omschrijving}</span>
+                  <span className="min-w-0 flex-1 truncate text-sm text-zacht">
+                    {s.omschrijving}
+                  </span>
                   <span className="cijfers text-sm text-zacht">{alsEuro(s.bedragCent)}</span>
                   <form action={zetVasteBoeteActief}>
                     <input type="hidden" name="soortId" value={s.id} />
@@ -128,8 +165,8 @@ export default async function VasteBoetes({
       <section className="rounded-2xl border border-rand bg-paneel p-4">
         <h2 className="bovenkop text-zacht">Voorstel bij te laat afmelden</h2>
         <p className="mt-2 text-sm text-zacht">
-          Meldt iemand zich na de afmeldgrens zelf af, dan zet de app deze boete klaar om te bevestigen.
-          De app begint pas vanaf het moment dat je hier iets kiest.
+          Meldt iemand zich na de afmeldgrens zelf af, dan zet de app deze boete klaar om te
+          bevestigen. De app begint pas vanaf het moment dat je hier iets kiest.
         </p>
         <div className="mt-3 flex flex-col gap-3">
           {(['wedstrijd', 'training'] as const).map((type) => {

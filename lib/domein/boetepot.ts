@@ -7,6 +7,8 @@ export type Boete = {
   spelerId: string
   omschrijving: string
   bedragCent: number
+  /** Hoe vaak, bij een vaste boete per stuk; het bedrag is al keer het aantal. */
+  aantal: number
   /** `YYYY-MM-DD`: de dag waar de boete over gaat. */
   datum: string
   eventId: string | null
@@ -148,5 +150,33 @@ export function nieuweBoetes(spelerId: string, boetes: Boete[], nu: Date): Boete
       b.spelerId === spelerId &&
       telt(b) &&
       nu.getTime() - b.gegevenOp.getTime() < ZEVEN_DAGEN,
+  )
+}
+
+function sleutel(omschrijving: string): string {
+  return omschrijving.trim().toLowerCase()
+}
+
+/**
+ * De vaste boetes met de vaakst gegeven van dit seizoen bovenaan, zodat je bij
+ * geven niet hoeft te zoeken. Er wordt geteld op omschrijving, zodat ook boetes
+ * uit de oude app meetellen. Bij een gelijk aantal gaat de goedkoopste voor.
+ */
+export function opPopulariteit<T extends { omschrijving: string; bedragCent: number }>(
+  soorten: T[],
+  boetes: Boete[],
+  seizoen: number,
+): T[] {
+  const keer = new Map<string, number>()
+  for (const b of boetes) {
+    if (!telt(b) || seizoenVan(b.datum) !== seizoen) continue
+    keer.set(sleutel(b.omschrijving), (keer.get(sleutel(b.omschrijving)) ?? 0) + 1)
+  }
+  const aantal = (s: T) => keer.get(sleutel(s.omschrijving)) ?? 0
+  return [...soorten].sort(
+    (a, b) =>
+      aantal(b) - aantal(a) ||
+      a.bedragCent - b.bedragCent ||
+      a.omschrijving.localeCompare(b.omschrijving, 'nl'),
   )
 }

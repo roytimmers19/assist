@@ -2,10 +2,11 @@ import { and, asc, eq, gte, lte } from 'drizzle-orm'
 import Link from 'next/link'
 import { Schil } from '@/app/_onderdelen/Schil'
 import { vereisBoeteGever } from '@/lib/auth/sessie'
-import { leesBoetesoorten } from '@/lib/db/boetepot'
+import { leesBoetes, leesBoetesoorten } from '@/lib/db/boetepot'
 import { db } from '@/lib/db/client'
 import { events } from '@/lib/db/schema'
 import { leesActieveSpelers } from '@/lib/db/spelers'
+import { huidigSeizoen, opPopulariteit } from '@/lib/domein/boetepot'
 import { eventTitel } from '@/lib/weergave/namen'
 import { alsKorteDag } from '@/lib/weergave/tijd'
 import { GeefFormulier } from './_onderdelen/GeefFormulier'
@@ -20,6 +21,7 @@ function foutmelding(fout?: string): string | null {
   if (fout === 'soort') return 'Kies waarvoor de boete is.'
   if (fout === 'omschrijving') return 'Schrijf op waarvoor de boete is.'
   if (fout === 'bedrag') return 'Vul een bedrag in, zoals 1,50.'
+  if (fout === 'aantal') return 'Kies een aantal tussen 1 en 99.'
   if (fout === 'event') return 'Die training of wedstrijd bestaat niet meer. Kies een andere.'
   return null
 }
@@ -34,9 +36,10 @@ export default async function BoeteGeven({
   const verbinding = db()
   const nu = Date.now()
 
-  const [spelers, soorten, recent] = await Promise.all([
+  const [spelers, soorten, boetes, recent] = await Promise.all([
     leesActieveSpelers(verbinding),
     leesBoetesoorten(verbinding),
+    leesBoetes(verbinding),
     verbinding
       .select()
       .from(events)
@@ -53,7 +56,9 @@ export default async function BoeteGeven({
   // Op rugnummer, zoals op het wedstrijdformulier; wie geen nummer heeft achteraan.
   const opNummer = spelers
     .map((s) => ({ id: s.id, naam: s.weergavenaam ?? s.naam, rugnummer: s.rugnummer }))
-    .sort((a, b) => (a.rugnummer ?? 999) - (b.rugnummer ?? 999) || a.naam.localeCompare(b.naam, 'nl'))
+    .sort(
+      (a, b) => (a.rugnummer ?? 999) - (b.rugnummer ?? 999) || a.naam.localeCompare(b.naam, 'nl'),
+    )
 
   return (
     <Schil naam={speler.naam} isLeider={speler.magLeiden} tab="boetepot">
@@ -72,9 +77,16 @@ export default async function BoeteGeven({
 
       <GeefFormulier
         spelers={opNummer}
-        soorten={soorten
-          .filter((s) => s.actief)
-          .map((s) => ({ id: s.id, omschrijving: s.omschrijving, bedragCent: s.bedragCent }))}
+        soorten={opPopulariteit(
+          soorten.filter((s) => s.actief),
+          boetes,
+          huidigSeizoen(new Date()),
+        ).map((s) => ({
+          id: s.id,
+          omschrijving: s.omschrijving,
+          bedragCent: s.bedragCent,
+          perStuk: s.perStuk,
+        }))}
         events={recent
           .reverse()
           .map((e) => ({ id: e.id, label: `${eventTitel(e)}, ${alsKorteDag(e.startOp)}` }))}

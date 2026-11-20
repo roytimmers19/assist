@@ -76,6 +76,23 @@ describe('boetes geven en intrekken', () => {
     expect(boetes[0].gegevenOp).toEqual(boetes[1].gegevenOp)
   })
 
+  it('bewaart een boete per stuk met zijn aantal', async () => {
+    const [mies, aap] = [await nieuweSpeler('mies'), await nieuweSpeler('aap')]
+    await geefBoetes(testDb, {
+      spelerIds: [aap],
+      omschrijving: 'Tegengoal',
+      bedragCent: 1000,
+      aantal: 20,
+      datum: '2026-11-08',
+      eventId: null,
+      soortId: null,
+      door: mies,
+    })
+
+    const [boete] = await leesBoetes(testDb)
+    expect(boete).toMatchObject({ omschrijving: 'Tegengoal', bedragCent: 1000, aantal: 20 })
+  })
+
   it('geeft een eigen boete zonder soort', async () => {
     const [mies, wim] = [await nieuweSpeler('mies'), await nieuweSpeler('wim')]
     await geefBoetes(testDb, {
@@ -114,6 +131,14 @@ describe('boetes geven en intrekken', () => {
     expect(boete.bedragCent).toBe(200)
     const [vast] = await leesBoetesoorten(testDb)
     expect(vast.bedragCent).toBe(300)
+  })
+
+  it('onthoudt of een vaste boete per stuk is', async () => {
+    const soort = await bewaarBoetesoort(testDb, { omschrijving: 'Tegengoal', bedragCent: 50, perStuk: true })
+    expect((await leesBoetesoorten(testDb))[0].perStuk).toBe(true)
+
+    await bewaarBoetesoort(testDb, { id: soort, omschrijving: 'Tegengoal', bedragCent: 50, perStuk: false })
+    expect((await leesBoetesoorten(testDb))[0].perStuk).toBe(false)
   })
 
   it('trekt een boete in zonder hem te wissen', async () => {

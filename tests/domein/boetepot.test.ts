@@ -5,6 +5,7 @@ import {
   huidigSeizoen,
   nieuweBoetes,
   openstaandCent,
+  opPopulariteit,
   potCent,
   ranglijst,
   seizoenVan,
@@ -19,6 +20,7 @@ function boete(spelerId: string, bedragCent: number, extra: Partial<Boete> = {})
     spelerId,
     omschrijving: 'Gele kaart',
     bedragCent,
+    aantal: 1,
     datum: '2026-11-08',
     eventId: null,
     status: 'telt',
@@ -197,5 +199,25 @@ describe('het totaal van één speler', () => {
     ]
     expect(totaalVan('aap', boetes, 2026)).toBe(700)
     expect(totaalVan('wim', boetes, 2026)).toBe(0)
+  })
+})
+
+describe('vaste boetes op populariteit', () => {
+  const soorten = [
+    { id: 'a', omschrijving: 'Rode kaart', bedragCent: 1500 },
+    { id: 'b', omschrijving: 'Tegengoal', bedragCent: 50 },
+    { id: 'c', omschrijving: 'Eindpartij niet meegedaan', bedragCent: 100 },
+    { id: 'd', omschrijving: 'Gele kaart', bedragCent: 500 },
+  ]
+
+  it('zet de vaakst gegeven boete van dit seizoen bovenaan, ook als hij anders geschreven is', () => {
+    const boetes = [
+      boete('aap', 100, { omschrijving: 'Eindpartij niet meegedaan' }),
+      boete('noot', 100, { omschrijving: 'eindpartij niet meegedaan ' }),
+      boete('mies', 500, { omschrijving: 'Gele kaart' }),
+      boete('wim', 1500, { omschrijving: 'Rode kaart', ingetrokkenOp: new Date('2026-11-09T10:00:00Z') }),
+      boete('wim', 1500, { omschrijving: 'Rode kaart', datum: '2026-06-30' }),
+    ]
+    expect(opPopulariteit(soorten, boetes, 2026).map((s) => s.id)).toEqual(['c', 'd', 'b', 'a'])
   })
 })

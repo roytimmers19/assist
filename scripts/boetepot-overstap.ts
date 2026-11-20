@@ -33,6 +33,7 @@ const alsBoetes: Boete[] = plan.rijen.map((r, i) => ({
   spelerId: r.spelerId,
   omschrijving: r.omschrijving,
   bedragCent: r.bedragCent,
+  aantal: 1,
   datum: r.datum,
   eventId: null,
   status: 'telt',

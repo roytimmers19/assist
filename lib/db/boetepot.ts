@@ -21,6 +21,7 @@ export async function leesBoetes(db: Db): Promise<Boete[]> {
     spelerId: r.spelerId,
     omschrijving: r.omschrijving,
     bedragCent: r.bedragCent,
+    aantal: r.aantal,
     datum: r.datum,
     eventId: r.eventId,
     status: r.status,
@@ -41,7 +42,10 @@ export async function leesBoetesoorten(db: Db): Promise<BoetesoortRij[]> {
 export type NieuweBoetes = {
   spelerIds: string[]
   omschrijving: string
+  /** Het bedrag van de hele boete, dus al keer het aantal. */
   bedragCent: number
+  /** Standaard 1. */
+  aantal?: number
   datum: string
   eventId: string | null
   soortId: string | null
@@ -56,6 +60,7 @@ export async function geefBoetes(db: Db, invoer: NieuweBoetes): Promise<void> {
       spelerId,
       omschrijving: invoer.omschrijving,
       bedragCent: invoer.bedragCent,
+      aantal: invoer.aantal ?? 1,
       datum: invoer.datum,
       eventId: invoer.eventId,
       soortId: invoer.soortId,
@@ -190,18 +195,19 @@ export async function maakBetaaldOngedaan(db: Db, spelerId: string, betaaldOp: D
 /** Een nieuwe vaste boete, of met `id` een bestaande aanpassen. Geeft het id terug. */
 export async function bewaarBoetesoort(
   db: Db,
-  invoer: { id?: string; omschrijving: string; bedragCent: number },
+  invoer: { id?: string; omschrijving: string; bedragCent: number; perStuk?: boolean },
 ): Promise<string> {
+  const perStuk = invoer.perStuk ?? false
   if (invoer.id) {
     await db
       .update(boetesoorten)
-      .set({ omschrijving: invoer.omschrijving, bedragCent: invoer.bedragCent })
+      .set({ omschrijving: invoer.omschrijving, bedragCent: invoer.bedragCent, perStuk })
       .where(eq(boetesoorten.id, invoer.id))
     return invoer.id
   }
   const [rij] = await db
     .insert(boetesoorten)
-    .values({ omschrijving: invoer.omschrijving, bedragCent: invoer.bedragCent })
+    .values({ omschrijving: invoer.omschrijving, bedragCent: invoer.bedragCent, perStuk })
     .returning({ id: boetesoorten.id })
   return rij.id
 }

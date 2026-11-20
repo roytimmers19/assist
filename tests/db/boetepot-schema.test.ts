@@ -102,3 +102,31 @@ describe('het schema van de boetepot', () => {
     ).rejects.toThrow()
   })
 })
+
+describe('aantal en per stuk', () => {
+  beforeEach(maakSchoon)
+
+  it('geeft een boete standaard aantal 1 en een vaste boete standaard niet per stuk', async () => {
+    const aap = await nieuweSpeler('aap')
+    const [boete] = await testDb
+      .insert(boetes)
+      .values({ spelerId: aap, omschrijving: 'Tegengoal', bedragCent: 50, datum: '2026-11-08' })
+      .returning()
+    expect(boete.aantal).toBe(1)
+
+    const [soort] = await testDb
+      .insert(boetesoorten)
+      .values({ omschrijving: 'Tegengoal', bedragCent: 50 })
+      .returning()
+    expect(soort.perStuk).toBe(false)
+  })
+
+  it('weigert een aantal van nul', async () => {
+    const aap = await nieuweSpeler('aap')
+    await expect(
+      testDb
+        .insert(boetes)
+        .values({ spelerId: aap, omschrijving: 'Tegengoal', bedragCent: 50, datum: '2026-11-08', aantal: 0 }),
+    ).rejects.toThrow()
+  })
+})
