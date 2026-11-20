@@ -4,7 +4,19 @@
     "Noot": "noot@voorbeeld.nl"
   },
   "boetes": [
-    { "speler": "Aap A.", "omschrijving": "Gele kaart", "bedrag": "5,00", "datum": "2026-09-13", "betaald": true },
-    { "speler": "Noot", "omschrijving": "Te laat op training", "bedrag": "2,00", "datum": "2026-10-01", "betaald": false }
+    {
+      "speler": "Aap A.",
+      "omschrijving": "Gele kaart",
+      "bedrag": "5,00",
+      "datum": "2026-09-13",
+      "betaald": true
+    },
+    {
+      "speler": "Noot",
+      "omschrijving": "Te laat op training",
+      "bedrag": "2,00",
+      "datum": "2026-10-01",
+      "betaald": false
+    }
   ]
 }
