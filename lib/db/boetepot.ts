@@ -1,7 +1,6 @@
 import { and, asc, eq, gte, inArray, isNull } from 'drizzle-orm'
-import { DateTime } from 'luxon'
 import type { Boete } from '@/lib/domein/boetepot'
-import { ZONE } from '@/lib/domein/tijd'
+import { dagVan } from '@/lib/domein/afwezigheid'
 import type { EventType } from '@/lib/domein/types'
 import type { Koppeling, Voorstel, VoorstelInvoer } from '@/lib/domein/voorstellen'
 import { leesMeldingen } from './aanwezigheid'
@@ -68,10 +67,6 @@ export async function trekBoeteIn(db: Db, id: string, door: string): Promise<voi
     .update(boetes)
     .set({ ingetrokkenOp: new Date(), ingetrokkenDoor: door })
     .where(and(eq(boetes.id, id), isNull(boetes.ingetrokkenOp)))
-}
-
-function dagVan(moment: Date): string {
-  return DateTime.fromJSDate(moment).setZone(ZONE).toISODate()!
 }
 
 function teLaatRij(voorstel: Voorstel, door: string) {
