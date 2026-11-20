@@ -10,25 +10,27 @@ export function Merk() {
   )
 }
 
-type Tab = 'mij' | 'week' | 'spelers' | 'profiel'
+type Tab = 'mij' | 'week' | 'spelers' | 'profiel' | 'boetepot'
 
 type Tabblad = { tab: Tab; naar: string; label: string }
 
 const EIGEN: Tabblad = { tab: 'mij', naar: '/', label: 'Mijn week' }
 const PROFIEL: Tabblad = { tab: 'profiel', naar: '/mij', label: 'Mijn gegevens' }
+const BOETEPOT: Tabblad = { tab: 'boetepot', naar: '/boetepot', label: 'Boetepot' }
 
 /**
  * Een speler zag helemaal geen balk en moest op zijn eigen naam tikken om bij
- * zijn gegevens te komen. Dat verzin je niet zelf, dus hij krijgt nu ook twee
- * plekken om tussen te wisselen. Bij de leider blijft de naam die weg, anders
- * worden het er vier op een telefoonbreedte.
+ * zijn gegevens te komen. Dat verzin je niet zelf, dus hij krijgt nu ook
+ * plekken om tussen te wisselen. Bij de leider blijft de naam die weg: met de
+ * boetepot zijn het er al vier, en de balk scrolt op een smalle telefoon.
  */
 function tabbladenVoor(isLeider: boolean): Tabblad[] {
-  if (!isLeider) return [EIGEN, PROFIEL]
+  if (!isLeider) return [EIGEN, BOETEPOT, PROFIEL]
   return [
     EIGEN,
     { tab: 'week', naar: '/leider', label: 'Weekoverzicht' },
     { tab: 'spelers', naar: '/leider/spelers', label: 'Spelers' },
+    BOETEPOT,
   ]
 }
 

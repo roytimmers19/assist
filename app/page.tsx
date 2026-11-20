@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { EventRegel } from '@/app/_onderdelen/EventRegel'
 import { MatchdayBlok } from '@/app/_onderdelen/MatchdayBlok'
 import { Schil } from '@/app/_onderdelen/Schil'
@@ -5,6 +6,7 @@ import { Veld } from '@/app/_onderdelen/Veld'
 import { vereisSpeler } from '@/lib/auth/sessie'
 import { leesKomendeEvents, leesMeldingen } from '@/lib/db/aanwezigheid'
 import { leesAfwezighedenTussen } from '@/lib/db/afwezigheid'
+import { leesBoetes } from '@/lib/db/boetepot'
 import { db } from '@/lib/db/client'
 import { leesDiensten } from '@/lib/db/diensten'
 import { leesOpstellingWeergave } from '@/lib/db/opstelling'
@@ -12,8 +14,10 @@ import { leesSpeler } from '@/lib/db/spelers'
 import { actueleStand } from '@/lib/domein/aanwezigheid'
 import { isAfwezigOp, selectieVoor } from '@/lib/domein/afwezigheid'
 import { standaardVoor } from '@/lib/domein/beschikbaarheid'
+import { nieuweBoetes } from '@/lib/domein/boetepot'
 import type { Dienstsoort } from '@/lib/domein/diensten'
 import type { Status } from '@/lib/domein/types'
+import { alsEuro } from '@/lib/weergave/geld'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,6 +31,7 @@ export default async function Startpagina() {
   if (!mij) return null
 
   const komend = await leesKomendeEvents(verbinding, new Date(), 6)
+  const mijnNieuweBoetes = nieuweBoetes(speler.id, await leesBoetes(verbinding), new Date())
   const meldingen = await leesMeldingen(
     verbinding,
     komend.map((e) => e.id),
@@ -89,6 +94,22 @@ export default async function Startpagina() {
 
   return (
     <Schil naam={speler.naam} isLeider={speler.magLeiden} tab="mij">
+      {/* Smal en boven de wedstrijd: je ziet het, maar de wedstrijd blijft het belangrijkste. */}
+      {mijnNieuweBoetes.map((boete) => (
+        <Link
+          key={boete.id}
+          href="/boetepot/boetes"
+          className="flex min-h-12 items-center gap-3 rounded-xl border border-kaart/40 bg-kaart/[0.08] px-4 py-3"
+        >
+          <span className="h-5 w-3.5 shrink-0 rotate-6 rounded-[3px] bg-kaart" aria-hidden />
+          <span className="min-w-0 flex-1 text-sm">
+            <span className="kopregel block truncate">Boete: {boete.omschrijving.toLowerCase()}</span>
+            <span className="block text-xs text-zacht">Bekijk de boetepot</span>
+          </span>
+          <span className="uithangbord cijfers whitespace-nowrap text-lg">{alsEuro(boete.bedragCent)}</span>
+        </Link>
+      ))}
+
       {!eerste && (
         <section className="rounded-2xl border border-rand bg-paneel p-6">
           <h2 className="kopregel text-lg">Nog niets gepland</h2>
