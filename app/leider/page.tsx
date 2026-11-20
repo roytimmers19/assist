@@ -4,6 +4,7 @@ import { Schil } from '@/app/_onderdelen/Schil'
 import { vereisLeider } from '@/lib/auth/sessie'
 import { leesMeldingen } from '@/lib/db/aanwezigheid'
 import { leesAfwezighedenTussen } from '@/lib/db/afwezigheid'
+import { leesBoetesoorten } from '@/lib/db/boetepot'
 import { db } from '@/lib/db/client'
 import { leesDiensten } from '@/lib/db/diensten'
 import { leesLaatsteImportRun } from '@/lib/db/importruns'
@@ -32,11 +33,17 @@ export default async function Weekoverzicht({
   const eind = begin.plus({ weeks: 1 })
 
   const verbinding = db()
-  const [eventsInWeek, spelersLijst, laatsteImport] = await Promise.all([
+  const [eventsInWeek, spelersLijst, laatsteImport, boetesoorten] = await Promise.all([
     leesEventsInWeek(verbinding, begin.toJSDate(), eind.toJSDate()),
     leesActieveSpelers(verbinding),
     leesLaatsteImportRun(verbinding),
+    leesBoetesoorten(verbinding),
   ])
+  // Welke vaste boete de app voorstelt bij te laat afmelden, per soort event.
+  const voorstelVoor = (type: 'training' | 'wedstrijd') =>
+    boetesoorten.find(
+      (s) => s.actief && (type === 'wedstrijd' ? s.teLaatWedstrijdOp : s.teLaatTrainingOp),
+    )?.bedragCent ?? null
 
   const meldingen = await leesMeldingen(
     verbinding,
@@ -142,6 +149,7 @@ export default async function Weekoverzicht({
                 )}
                 spelers={spelers}
                 kijkerId={leider.id}
+                voorstelCent={voorstelVoor(event.type)}
                 afwezig={spelers.filter((s) => weg.has(s.id))}
                 diensten={{
                   materiaal: (dienstenPerEvent.get(event.id) ?? [])

@@ -1,11 +1,11 @@
 import Link from 'next/link'
-import { zetAanwezigheidAlsLeider } from '@/app/acties/leider'
 import type { EventRij } from '@/lib/db/aanwezigheid'
 import { gezetDoorTekst } from '@/lib/domein/aanwezigheid'
 import { maakAppBericht } from '@/lib/domein/appbericht'
 import { afmeldGrens, isTeLaatAfgemeld } from '@/lib/domein/telaat'
 import type { Stand } from '@/lib/domein/types'
 import { eventTitel } from '@/lib/weergave/namen'
+import { teLaatVraag } from '@/lib/weergave/telaatvraag'
 import {
   alsDagEnTijd,
   alsDagZonderTijd,
@@ -14,6 +14,7 @@ import {
   alsTijd,
 } from '@/lib/weergave/tijd'
 import { KopieerKnop } from './KopieerKnop'
+import { MeldKnop } from './MeldKnop'
 
 type Speler = { id: string; naam: string; rugnummer: number | null }
 
@@ -65,6 +66,7 @@ export function EventKolom({
   diensten,
   opstellingStatus = null,
   kijkerId,
+  voorstelCent = null,
 }: {
   event: EventRij
   stand: Stand[]
@@ -76,8 +78,12 @@ export function EventKolom({
   opstellingStatus?: 'concept' | 'gepubliceerd' | null
   /** Wie kijkt: die leest "door jou gezet" bij wat hij zelf zette. */
   kijkerId: string
+  /** De vaste boete die de app voorstelt bij te laat afmelden voor dit event. */
+  voorstelCent?: number | null
 }) {
   const spelerVan = new Map(spelers.map((s) => [s.id, s]))
+  // Na de afmeldgrens vraagt elke knop eerst om bevestiging.
+  const grensVoorbij = isTeLaatAfgemeld(new Date(), event)
   const titel = eventTitel(event)
 
   // Alleen wie zich echt heeft afgemeld. Wie 'nee' staat zonder melding doet
@@ -103,7 +109,7 @@ export function EventKolom({
     const teLaat = weg && isTeLaatAfgemeld(regel.gezetOp ?? null, event)
 
     return (
-      <li className="flex items-center gap-3 border-b border-rand/60 py-2 last:border-b-0">
+      <li className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-rand/60 py-2 last:border-b-0">
         <span
           className={`cijfers uithangbord w-7 shrink-0 text-right text-sm ${
             weg ? 'text-weg/70' : 'text-club-op/80'
@@ -135,14 +141,21 @@ export function EventKolom({
           )}
         </span>
 
-        <form action={zetAanwezigheidAlsLeider} className="shrink-0">
-          <input type="hidden" name="eventId" value={event.id} />
-          <input type="hidden" name="spelerId" value={regel.spelerId} />
-          <input type="hidden" name="status" value={weg ? 'ja' : 'nee'} />
-          <button className="min-h-8 rounded-lg border border-rand px-2.5 text-xs text-zacht transition-colors hover:border-club-op/60 hover:text-tekst">
-            {weg ? 'toch wel' : 'afmelden'}
-          </button>
-        </form>
+        <MeldKnop
+          eventId={event.id}
+          spelerId={regel.spelerId}
+          naar={weg ? 'ja' : 'nee'}
+          label={weg ? 'toch wel' : 'afmelden'}
+          vraag={
+            grensVoorbij
+              ? teLaatVraag({
+                  naam: speler?.naam ?? 'Deze speler',
+                  naar: weg ? 'ja' : 'nee',
+                  voorstelCent: voorstelCent ?? null,
+                })
+              : null
+          }
+        />
       </li>
     )
   }
