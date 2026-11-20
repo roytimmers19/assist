@@ -243,6 +243,16 @@ export default async function Spelersbeheer({
                           leider
                         </span>
                       )}
+                      {speler.penningmeester && (
+                        <span className="bovenkop ml-2 rounded-full bg-kaart/15 px-2 py-0.5 text-kaart-op">
+                          penningmeester
+                        </span>
+                      )}
+                      {speler.boeteUitdeler && (
+                        <span className="bovenkop ml-2 rounded-full bg-paneel-op px-2 py-0.5 text-zacht">
+                          boete-uitdeler
+                        </span>
+                      )}
                     </span>
                     <span className="block truncate text-xs text-zacht">
                       {speler.email}
@@ -340,6 +350,30 @@ export default async function Spelersbeheer({
                       />
                       Speelt
                     </label>
+
+                    <fieldset className="flex w-full flex-wrap items-center gap-x-4 border-t border-rand pt-1">
+                      <legend className="bovenkop float-left w-full pt-2 text-zacht">Boetepot</legend>
+                      <label className="flex min-h-11 items-center gap-2 text-sm text-zacht">
+                        <input
+                          type="checkbox"
+                          name="penningmeester"
+                          value="ja"
+                          defaultChecked={speler.penningmeester}
+                          className="size-4 accent-club"
+                        />
+                        Penningmeester
+                      </label>
+                      <label className="flex min-h-11 items-center gap-2 text-sm text-zacht">
+                        <input
+                          type="checkbox"
+                          name="boeteUitdeler"
+                          value="ja"
+                          defaultChecked={speler.boeteUitdeler}
+                          className="size-4 accent-club"
+                        />
+                        Boete-uitdeler
+                      </label>
+                    </fieldset>
 
                     <Knop toon="club" vol={false}>
                       Opslaan

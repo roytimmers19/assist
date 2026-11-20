@@ -36,6 +36,6 @@ afterAll(async () => {
 /** Leegt alle tabellen die per test schoon moeten zijn. */
 export async function maakSchoon() {
   await testDb.execute(
-    sql`truncate table dienst, opstelling_plek, opstelling, aanwezigheid, afwezigheid, import_run, uitnodiging, event, speler restart identity cascade`,
+    sql`truncate table boete, boetesoort, dienst, opstelling_plek, opstelling, aanwezigheid, afwezigheid, import_run, uitnodiging, event, speler restart identity cascade`,
   )
 }

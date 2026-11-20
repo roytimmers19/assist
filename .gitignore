@@ -16,6 +16,10 @@ tsconfig.tsbuildinfo
 # De echte ploeg. Zie scripts/seizoen.voorbeeld.json voor de vorm.
 scripts/seizoen.json
 
+# Het overzicht uit de oude boeteapp: echte namen. Zie
+# scripts/boetepot-overstap.voorbeeld.json voor de vorm.
+scripts/boetepot-overstap.json
+
 # Skills van derden. Herstel met: npx skills experimental_install
 # Het recept staat in skills-lock.json.
 .claude/skills/

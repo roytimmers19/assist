@@ -52,6 +52,10 @@ export const spelers = pgTable('speler', {
    */
   doetTrainingen: boolean('doet_trainingen').notNull().default(true),
   doetWedstrijden: boolean('doet_wedstrijden').notNull().default(true),
+  /** Mag in de boetepot afrekenen en de vaste boetes beheren. Zie `specs/boetepot/spec.md`. */
+  penningmeester: boolean('penningmeester').notNull().default(false),
+  /** Mag in de boetepot boetes geven en intrekken. */
+  boeteUitdeler: boolean('boete_uitdeler').notNull().default(false),
   aangemaaktOp: timestamp('aangemaakt_op', { withTimezone: true }).notNull().defaultNow(),
 })
 
@@ -241,5 +245,78 @@ export const diensten = pgTable(
     // bij één event mag wél: bij een kleine selectie soms onvermijdelijk.
     uniqueIndex('dienst_event_speler_soort_idx').on(tabel.eventId, tabel.spelerId, tabel.soort),
     index('dienst_event_idx').on(tabel.eventId),
+  ],
+)
+
+/**
+ * De vaste boetes. Een soort wordt uitgezet, nooit gewist, zodat oude boetes
+ * er nog naar kunnen wijzen. Per soort event hoort hooguit één soort bij te
+ * laat afmelden, en één soort mag bij allebei horen. Het tijdstip is het
+ * moment van koppelen: vanaf dan doet de app voorstellen, leeg is niet gekoppeld.
+ */
+export const boetesoorten = pgTable(
+  'boetesoort',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    omschrijving: text('omschrijving').notNull(),
+    bedragCent: integer('bedrag_cent').notNull(),
+    actief: boolean('actief').notNull().default(true),
+    teLaatWedstrijdOp: timestamp('te_laat_wedstrijd_op', { withTimezone: true }),
+    teLaatTrainingOp: timestamp('te_laat_training_op', { withTimezone: true }),
+  },
+  (tabel) => [
+    check('boetesoort_omschrijving_gevuld', sql`length(btrim(${tabel.omschrijving})) > 0`),
+    check('boetesoort_bedrag_positief', sql`${tabel.bedragCent} > 0`),
+    // Hooguit één gekoppelde soort per soort event: een unieke index op een vaste waarde.
+    uniqueIndex('boetesoort_te_laat_wedstrijd_idx')
+      .on(sql`(true)`)
+      .where(sql`${tabel.teLaatWedstrijdOp} is not null`),
+    uniqueIndex('boetesoort_te_laat_training_idx')
+      .on(sql`(true)`)
+      .where(sql`${tabel.teLaatTrainingOp} is not null`),
+  ],
+)
+
+/**
+ * Eén boete voor één speler. Hij onthoudt zijn eigen omschrijving en bedrag,
+ * zodat een vaste boete die later duurder wordt hem niet verandert. Intrekken
+ * en betalen zetten een tijdstip; een rij wordt nooit gewist.
+ */
+export const boetes = pgTable(
+  'boete',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    spelerId: uuid('speler_id')
+      .notNull()
+      .references(() => spelers.id, { onDelete: 'cascade' }),
+    omschrijving: text('omschrijving').notNull(),
+    bedragCent: integer('bedrag_cent').notNull(),
+    /** De dag waar de boete over gaat; die bepaalt het seizoen. */
+    datum: date('datum').notNull(),
+    eventId: uuid('event_id').references(() => events.id, { onDelete: 'set null' }),
+    soortId: uuid('soort_id').references(() => boetesoorten.id, { onDelete: 'set null' }),
+    aanleiding: text('aanleiding', { enum: ['te_laat_afgemeld'] }),
+    /** 'gevallen' is een voorstel dat iemand liet vallen: het telt niet en komt niet terug. */
+    status: text('status', { enum: ['telt', 'gevallen'] })
+      .notNull()
+      .default('telt'),
+    gegevenOp: timestamp('gegeven_op', { withTimezone: true }).notNull().defaultNow(),
+    gegevenDoor: uuid('gegeven_door').references(() => spelers.id, { onDelete: 'set null' }),
+    ingetrokkenOp: timestamp('ingetrokken_op', { withTimezone: true }),
+    ingetrokkenDoor: uuid('ingetrokken_door').references(() => spelers.id, {
+      onDelete: 'set null',
+    }),
+    betaaldOp: timestamp('betaald_op', { withTimezone: true }),
+    betaaldDoor: uuid('betaald_door').references(() => spelers.id, { onDelete: 'set null' }),
+  },
+  (tabel) => [
+    check('boete_omschrijving_gevuld', sql`length(btrim(${tabel.omschrijving})) > 0`),
+    check('boete_bedrag_positief', sql`${tabel.bedragCent} > 0`),
+    // Hooguit één boete voor te laat afmelden per speler per event, telt of gevallen.
+    uniqueIndex('boete_te_laat_idx')
+      .on(tabel.eventId, tabel.spelerId)
+      .where(sql`${tabel.aanleiding} = 'te_laat_afgemeld'`),
+    index('boete_speler_idx').on(tabel.spelerId),
+    index('boete_datum_idx').on(tabel.datum),
   ],
 )
