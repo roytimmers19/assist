@@ -1,6 +1,6 @@
 # Assist
 
-Aanwezigheid, wedstrijdschema en straks de boetes van **SV Voorbeeld 2 (zondag)**, op één plek.
+Aanwezigheid, wedstrijdschema en de boetes van **SV Voorbeeld 2 (zondag)**, op één plek.
 
 Het wedstrijdschema komt automatisch binnen uit de agendafeed van voetbal.nl, spelers
 melden zichzelf af, en de leider ziet in één blik wie er komt.

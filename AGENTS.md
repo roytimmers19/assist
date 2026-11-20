@@ -1,7 +1,7 @@
 # Assist
 
-Handigheidjes voor een voetbalteam: aanwezigheid, opstelling en dienstrooster
-op één plek.
+Handigheidjes voor een voetbalteam: aanwezigheid, opstelling, dienstrooster en
+de boetepot op één plek.
 
 **Voor spelers** — in één blik zien wanneer je moet spelen, trainen of dienst
 hebt, en of je jezelf al hebt aangemeld.
@@ -18,8 +18,8 @@ dat loshalen is werk voor later, geen aanleiding om het er terloops bij te
 doen.
 
 De app groeit als een verzameling losse handigheidjes, niet als één groot
-systeem. Aanwezigheid, opstelling en dienstrooster staan er; een boetepot komt
-erbij. Een nieuwe module hoort te werken zonder dat de rest verbouwd wordt.
+systeem. Aanwezigheid, opstelling, dienstrooster en de boetepot staan er. Een
+nieuwe module hoort te werken zonder dat de rest verbouwd wordt.
 
 ## Deze repository wordt openbaar
 
@@ -83,3 +83,13 @@ bij de merge naar `master`.
 
 - Vóór een migratie tegen de productiedatabase
 - Zodra de spec iets niet dekt en je zou moeten gokken
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -80,32 +80,32 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
 
 ### Wanneer is het af
 
-- [ ] Een tab **Boetepot** staat voor iedereen in de ploeg in de balk. Hij
+- [x] Een tab **Boetepot** staat voor iedereen in de ploeg in de balk. Hij
       opent op de **ranglijst**: bovenaan wat er dit seizoen in de pot zit,
       daaronder elke actieve speler met een boete en zijn totaalbedrag van dit
       seizoen, het hoogste bovenaan, de top drie uitgelicht met een groter
       cijfer en een eigen vlak. Je eigen regel is gemarkeerd met "jij". Wie nog
       geen boete heeft, staat met naam onder "Nog schoon". Er staat geen aantal
       bij. Een vorig seizoen is op te vragen.
-- [ ] Het onderdeel **Boetes** toont alle boetes van het seizoen: wie,
+- [x] Het onderdeel **Boetes** toont alle boetes van het seizoen: wie,
       waarvoor, hoeveel en wanneer. Ingetrokken boetes staan doorgestreept. Wie
       boetes mag geven ziet hier bovenaan de voorstellen, met "Bevestigen" en
       "Laten vallen", en een knop naar **Boete geven**.
-- [ ] **Boete geven** is een eigen scherm: een of meer spelers, een soort uit de
+- [x] **Boete geven** is een eigen scherm: een of meer spelers, een soort uit de
       boetelijst of een eigen omschrijving met bedrag, en eventueel de training
       of wedstrijd waar hij bij hoort.
-- [ ] Het onderdeel **Afrekenen** toont per speler wat hij nog open heeft. Met
+- [x] Het onderdeel **Afrekenen** toont per speler wat hij nog open heeft. Met
       "Betaald" staan al zijn openstaande boetes op betaald, zonder
       bevestigingsvraag. Op die regel staat daarna "Ongedaan maken" tot je het
       scherm verlaat. Wie alles betaald heeft, staat ingeklapt onder
       "Afgerekend", ook met "Ongedaan maken".
-- [ ] De pagina **Vaste boetes**, via een link op Afrekenen, toont de soorten
+- [x] De pagina **Vaste boetes**, via een link op Afrekenen, toont de soorten
       op bedrag, en welke soort hoort bij te laat afmelden voor een training en
       voor een wedstrijd.
-- [ ] In het spelersoverzicht zet een leider per speler de vinkjes
+- [x] In het spelersoverzicht zet een leider per speler de vinkjes
       "Penningmeester" en "Boete-uitdeler".
-- [ ] Een nieuwe boete staat zeven dagen op het beginscherm van wie hem kreeg.
-- [ ] `scripts/boetepot-overstap.ts` zet het overzicht uit de oude app in één
+- [x] Een nieuwe boete staat zeven dagen op het beginscherm van wie hem kreeg.
+- [x] `scripts/boetepot-overstap.ts` zet het overzicht uit de oude app in één
       keer over. Daarna komen de ranglijst en wat er nog open staat overeen met
       de oude app.
 
@@ -279,7 +279,8 @@ Scenario: een speler ziet niet wie wat betaald heeft
   En ziet hij het onderdeel Afrekenen niet
 ```
 
-Bewezen door: met de hand nalopen; zie het bouwplan
+Bewezen door: met de hand nagelopen in een lokale app met proefgegevens. Een
+test ontbreekt: de pagina draait alleen met een sessie.
 
 ```gherkin
 Scenario: te laat afmelden levert een voorstel op
