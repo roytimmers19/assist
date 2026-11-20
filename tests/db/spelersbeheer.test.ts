@@ -15,6 +15,16 @@ describe('spelersbeheer', () => {
     await maakSchoon()
   })
 
+  it('zet de vinkjes penningmeester en boete-uitdeler, en laat het beheerdersrecht staan', async () => {
+    const speler = await maakSpeler(testDb, { naam: 'Noot', email: 'noot@voorbeeld.nl' })
+    await testDb.update(spelers).set({ beheerder: true }).where(eq(spelers.id, speler.id))
+
+    await wijzigSpeler(testDb, speler.id, { penningmeester: true, boeteUitdeler: true })
+
+    const [rij] = await testDb.select().from(spelers).where(eq(spelers.id, speler.id))
+    expect(rij).toMatchObject({ penningmeester: true, boeteUitdeler: true, beheerder: true })
+  })
+
   // Standaard waar, zodat alleen wie een uitzondering is iets hoeft te zetten.
   it('laat een nieuwe speler standaard overal aan meedoen', async () => {
     const speler = await maakSpeler(testDb, { naam: 'Bas', email: 'bas@voorbeeld.nl' })

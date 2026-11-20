@@ -2,7 +2,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db/client'
 import { zoekSpelerBijGebruiker } from '@/lib/db/spelers'
-import { magLeiden } from '@/lib/domein/rechten'
+import { magAfrekenen, magBoetesGeven, magLeiden } from '@/lib/domein/rechten'
 import { auth } from './auth'
 
 export type HuidigeSpeler = {
@@ -10,6 +10,10 @@ export type HuidigeSpeler = {
   naam: string
   /** Leider of beheerder. De rol zelf staat hier bewust niet. */
   magLeiden: boolean
+  /** Boetes geven, intrekken en voorstellen afhandelen. */
+  magBoetesGeven: boolean
+  /** Afvinken wat betaald is en de vaste boetes beheren. */
+  magAfrekenen: boolean
   accountStatus: 'uitgenodigd' | 'wacht_op_goedkeuring' | 'actief'
 }
 
@@ -39,6 +43,8 @@ export async function huidigeSpeler(): Promise<HuidigeSpeler | null> {
     id: speler.id,
     naam: speler.weergavenaam ?? speler.naam,
     magLeiden: magLeiden(speler),
+    magBoetesGeven: magBoetesGeven(speler),
+    magAfrekenen: magAfrekenen(speler),
     accountStatus: speler.accountStatus,
   }
 }
@@ -55,5 +61,19 @@ export async function vereisLeider(): Promise<HuidigeSpeler> {
   // Geen foutpagina maar terug naar het eigen scherm: een speler die hier
   // per ongeluk komt hoeft niet te weten dat deze pagina bestaat.
   if (!speler.magLeiden) redirect('/')
+  return speler
+}
+
+/** Voor de schermen en acties waar boetes gegeven worden. */
+export async function vereisBoeteGever(): Promise<HuidigeSpeler> {
+  const speler = await vereisSpeler()
+  if (!speler.magBoetesGeven) redirect('/boetepot')
+  return speler
+}
+
+/** Voor afrekenen en de vaste boetes. */
+export async function vereisAfrekenaar(): Promise<HuidigeSpeler> {
+  const speler = await vereisSpeler()
+  if (!speler.magAfrekenen) redirect('/boetepot')
   return speler
 }
