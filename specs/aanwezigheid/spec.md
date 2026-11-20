@@ -44,6 +44,10 @@ bepaalt of hij moet bellen, schuiven of niets hoeft te doen.
     `eventtype_instelling`, dit ooit overneemt, is een eigen besluit; de
     boetepot volgt gewoon wat deze functie zegt.
   - Te laat afmelden is een stempel, geen slot: afmelden blijft altijd kunnen.
+  - Meldt een leider iemand na de afmeldgrens af of weer aan, dan vraagt het
+    weekoverzicht eerst om bevestiging met ja of nee. Bij afmelden noemt de
+    vraag het boetevoorstel, als er een vaste boete aan te laat afmelden hangt
+    (`specs/boetepot/spec.md`).
 
 ## Contract
 
