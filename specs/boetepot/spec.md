@@ -97,7 +97,11 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
       niets over betaald of open.
 - [x] **Boete geven** is een eigen scherm: een of meer spelers, een soort uit de
       boetelijst of een eigen omschrijving met bedrag, en eventueel de training
-      of wedstrijd waar hij bij hoort.
+      of wedstrijd waar hij bij hoort. De vaste boetes staan op hoe vaak ze dit
+      seizoen gegeven zijn, de vaakste bovenaan.
+- [x] Een vaste boete kan **per stuk** zijn, zoals een tegengoal. Bij geven kies
+      je dan een aantal van 1 tot 99. Het wordt één boete met het bedrag keer
+      het aantal, in de lijsten getoond als "Tegengoal · 20×".
 - [x] Het onderdeel **Afrekenen** toont per speler wat hij nog open heeft. Met
       "Betaald" staan al zijn openstaande boetes op betaald, zonder
       bevestigingsvraag. Op die regel staat daarna "Ongedaan maken" tot je het
@@ -242,6 +246,24 @@ Scenario: een eigen boete zonder soort
 ```
 
 Bewezen door: `tests/db/boetepot.test.ts`
+
+```gherkin
+Scenario: twintig tegengoals
+  Gegeven de vaste boete "Tegengoal" van €0,50 per stuk
+  Als mies aap twintig tegengoals geeft
+  Dan heeft aap één boete "Tegengoal" van €10, met aantal 20
+```
+
+Bewezen door: `tests/domein/boeteformulier.test.ts`, `tests/db/boetepot.test.ts`
+
+```gherkin
+Scenario: de vaakst gegeven boete bovenaan
+  Gegeven dat "Eindpartij niet meegedaan" dit seizoen het vaakst gegeven is
+  Als iemand een boete gaat geven
+  Dan staat "Eindpartij niet meegedaan" bovenaan de vaste boetes
+```
+
+Bewezen door: `tests/domein/boetepot.test.ts`
 
 ```gherkin
 Scenario: een soort die duurder wordt verandert geen oude boetes

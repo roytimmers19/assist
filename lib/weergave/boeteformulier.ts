@@ -1,19 +1,26 @@
 import { alsCenten } from './geld'
 
-type Soort = { id: string; omschrijving: string; bedragCent: number; actief: boolean }
+type Soort = { id: string; omschrijving: string; bedragCent: number; actief: boolean; perStuk: boolean }
 
-export type BoeteKeuze = { soortId: string | null; omschrijving: string; bedragCent: number }
+export type BoeteKeuze = {
+  soortId: string | null
+  omschrijving: string
+  /** Het bedrag van de hele boete, dus al keer het aantal. */
+  bedragCent: number
+  aantal: number
+}
 
 /** Wat er mis is, zodat het scherm het in gewone taal kan zeggen. */
-export type BoeteFout = { fout: 'soort' | 'omschrijving' | 'bedrag' }
+export type BoeteFout = { fout: 'soort' | 'omschrijving' | 'bedrag' | 'aantal' }
 
 /**
  * Leest "waarvoor" uit het formulier Boete geven: een vaste boete, of met
  * `anders` een eigen omschrijving en bedrag. Bij een vaste boete komen
- * omschrijving en bedrag uit de lijst, nooit uit het verzoek.
+ * omschrijving en bedrag uit de lijst, nooit uit het verzoek. Is de vaste boete
+ * per stuk, zoals een tegengoal, dan telt het aantal mee in het bedrag.
  */
 export function leesBoeteKeuze(
-  invoer: { soort: string; omschrijving: string; bedrag: string },
+  invoer: { soort: string; omschrijving: string; bedrag: string; aantal: string },
   soorten: Soort[],
 ): BoeteKeuze | BoeteFout {
   if (invoer.soort === 'anders') {
@@ -21,12 +28,18 @@ export function leesBoeteKeuze(
     if (!omschrijving) return { fout: 'omschrijving' }
     const bedragCent = alsCenten(invoer.bedrag)
     if (bedragCent === null) return { fout: 'bedrag' }
-    return { soortId: null, omschrijving, bedragCent }
+    return { soortId: null, omschrijving, bedragCent, aantal: 1 }
   }
 
   const soort = soorten.find((s) => s.id === invoer.soort && s.actief)
   if (!soort) return { fout: 'soort' }
-  return { soortId: soort.id, omschrijving: soort.omschrijving, bedragCent: soort.bedragCent }
+
+  const vast = { soortId: soort.id, omschrijving: soort.omschrijving }
+  if (!soort.perStuk) return { ...vast, bedragCent: soort.bedragCent, aantal: 1 }
+
+  const aantal = /^\d{1,2}$/.test(invoer.aantal.trim()) ? Number(invoer.aantal) : 0
+  if (aantal < 1) return { fout: 'aantal' }
+  return { ...vast, bedragCent: soort.bedragCent * aantal, aantal }
 }
 
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

@@ -261,6 +261,8 @@ export const boetesoorten = pgTable(
     omschrijving: text('omschrijving').notNull(),
     bedragCent: integer('bedrag_cent').notNull(),
     actief: boolean('actief').notNull().default(true),
+    /** Bij geven kies je een aantal, zoals twintig tegengoals: het bedrag is per stuk. */
+    perStuk: boolean('per_stuk').notNull().default(false),
     teLaatWedstrijdOp: timestamp('te_laat_wedstrijd_op', { withTimezone: true }),
     teLaatTrainingOp: timestamp('te_laat_training_op', { withTimezone: true }),
   },
@@ -290,7 +292,10 @@ export const boetes = pgTable(
       .notNull()
       .references(() => spelers.id, { onDelete: 'cascade' }),
     omschrijving: text('omschrijving').notNull(),
+    /** Het bedrag van de hele boete, dus al keer het aantal. */
     bedragCent: integer('bedrag_cent').notNull(),
+    /** Hoe vaak, bij een vaste boete per stuk. Alleen voor de weergave: "20×". */
+    aantal: integer('aantal').notNull().default(1),
     /** De dag waar de boete over gaat; die bepaalt het seizoen. */
     datum: date('datum').notNull(),
     eventId: uuid('event_id').references(() => events.id, { onDelete: 'set null' }),
@@ -312,6 +317,7 @@ export const boetes = pgTable(
   (tabel) => [
     check('boete_omschrijving_gevuld', sql`length(btrim(${tabel.omschrijving})) > 0`),
     check('boete_bedrag_positief', sql`${tabel.bedragCent} > 0`),
+    check('boete_aantal_positief', sql`${tabel.aantal} > 0`),
     // Hooguit één boete voor te laat afmelden per speler per event, telt of gevallen.
     uniqueIndex('boete_te_laat_idx')
       .on(tabel.eventId, tabel.spelerId)

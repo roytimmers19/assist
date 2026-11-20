@@ -47,6 +47,7 @@ export async function geefBoete(formulier: FormData) {
       soort: alsTekst(formulier, 'soort'),
       omschrijving: alsTekst(formulier, 'omschrijving'),
       bedrag: alsTekst(formulier, 'bedrag'),
+      aantal: alsTekst(formulier, 'aantal'),
     },
     await leesBoetesoorten(verbinding),
   )
@@ -132,6 +133,7 @@ export async function bewaarVasteBoete(formulier: FormData) {
     id: alsId(alsTekst(formulier, 'soortId')) ?? undefined,
     omschrijving,
     bedragCent,
+    perStuk: alsVinkje(formulier, 'perStuk'),
   })
   ververs()
 }

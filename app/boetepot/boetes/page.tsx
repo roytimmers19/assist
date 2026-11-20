@@ -33,6 +33,7 @@ function groepeer(boetes: Boete[]): Boete[][] {
     const sleutel = [
       b.omschrijving,
       b.bedragCent,
+      b.aantal,
       b.datum,
       b.gegevenOp.getTime(),
       b.ingetrokkenOp !== null,
@@ -220,6 +221,7 @@ export default async function Boetes({
                     </span>
                     <span className="block truncate text-xs text-zacht">
                       {eerste.omschrijving}
+                      {eerste.aantal > 1 && ` · ${eerste.aantal}×`}
                       {groep.length > 1 && ' · elk'}
                       {ingetrokken && ' · ingetrokken'}
                     </span>
