@@ -137,7 +137,14 @@ export default async function VasteBoetes({
               type === 'wedstrijd' ? s.teLaatWedstrijdOp : s.teLaatTrainingOp,
             )
             return (
-              <form key={type} action={koppelTeLaatAfmelden} className="flex flex-col gap-1">
+              // De sleutel draagt de huidige keuze: na bewaren tekent React het
+              // formulier opnieuw, anders zet hij het keuzeveld terug op wat er
+              // bij het openen stond.
+              <form
+                key={`${type}-${gekoppeld?.id ?? 'geen'}`}
+                action={koppelTeLaatAfmelden}
+                className="flex flex-col gap-1"
+              >
                 <input type="hidden" name="type" value={type} />
                 <label htmlFor={`koppel-${type}`} className="bovenkop text-zacht">
                   {type === 'wedstrijd' ? 'Wedstrijd' : 'Training'}
