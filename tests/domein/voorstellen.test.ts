@@ -106,8 +106,13 @@ describe('voorstellen bij te laat afmelden', () => {
     expect(uit[0].afgemeldOp).toEqual(woensdag)
   })
 
-  it('stelt niets voor als een leider iemand afmeldde', () => {
-    const uit = voorstellen(invoer([melding('nee', woensdag, 'leider')]))
+  it('stelt ook een boete voor als een leider iemand te laat afmeldde', () => {
+    const uit = voorstellen(invoer([melding('ja', maandag), melding('nee', woensdag, 'leider')]))
+    expect(uit).toMatchObject([{ spelerId: 'aap', afgemeldOp: woensdag }])
+  })
+
+  it('stelt niets voor als een leider iemand al op tijd had afgemeld', () => {
+    const uit = voorstellen(invoer([melding('nee', maandag, 'leider'), melding('nee', woensdag)]))
     expect(uit).toEqual([])
   })
 

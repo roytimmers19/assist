@@ -41,6 +41,10 @@ export type Voorstel = {
  * Wat telt is hoe iemand stond op het moment van de afmeldgrens. Stond hij
  * toen al op "nee", dan wist de leider het op tijd, en levert per ongeluk op
  * "ik kom" tikken en zich weer afmelden niets op.
+ *
+ * Ook een te late afmelding door een leider telt: vaak laat een speler het
+ * hem per app weten. Het blijft een voorstel; een mens bevestigt het of laat
+ * het vallen.
  */
 export function voorstellen(invoer: VoorstelInvoer): Voorstel[] {
   const uit: Voorstel[] = []
@@ -70,7 +74,6 @@ export function voorstellen(invoer: VoorstelInvoer): Voorstel[] {
       while (begin > 0 && eigen[begin - 1].status === 'nee') begin -= 1
       const afmelding = eigen[begin]
 
-      if (afmelding.bron !== 'speler') continue
       if (afmelding.gezetOp.getTime() <= grens) continue
       if (afmelding.gezetOp.getTime() < koppeling.gekoppeldOp.getTime()) continue
 
