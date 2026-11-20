@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Melding } from '@/lib/domein/types'
-import { type VoorstelInvoer, voorstellen } from '@/lib/domein/voorstellen'
+import { type VoorstelInvoer, krijgtVoorstel, voorstellen } from '@/lib/domein/voorstellen'
 
 // Zondag 22 november 2026, 14:00 in Nederland. De grens is dinsdag 17
 // november 23:59:59, dus 22:59:59 UTC.
@@ -162,5 +162,29 @@ describe('voorstellen bij te laat afmelden', () => {
       ),
     )
     expect(uit.map((v) => v.spelerId)).toEqual(['aap'])
+  })
+})
+
+describe('krijgtVoorstel: wat er zou gebeuren als een leider nu afmeldt', () => {
+  const nu = new Date('2026-11-18T12:00:00Z')
+
+  it('zegt ja als afmelden na de grens een voorstel oplevert', () => {
+    expect(krijgtVoorstel(invoer([melding('ja', maandag)]), 'w-1', 'aap', nu)).toMatchObject({
+      bedragCent: 500,
+    })
+  })
+
+  it('zegt nee als hij bij de grens al afgemeld stond', () => {
+    expect(krijgtVoorstel(invoer([melding('nee', maandag), melding('ja', woensdag)]), 'w-1', 'aap', nu)).toBeNull()
+  })
+
+  it('zegt nee als er al een te-laat-boete is', () => {
+    expect(
+      krijgtVoorstel(invoer([melding('ja', maandag)], { afgehandeld: new Set(['w-1:aap']) }), 'w-1', 'aap', nu),
+    ).toBeNull()
+  })
+
+  it('zegt nee zonder gekoppelde vaste boete', () => {
+    expect(krijgtVoorstel(invoer([melding('ja', maandag)], { koppelingen: [] }), 'w-1', 'aap', nu)).toBeNull()
   })
 })

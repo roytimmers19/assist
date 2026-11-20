@@ -91,3 +91,26 @@ export function voorstellen(invoer: VoorstelInvoer): Voorstel[] {
 
   return uit
 }
+
+/**
+ * Wat er zou gebeuren als een leider deze speler nu afmeldt: het voorstel dat
+ * dan klaarstaat, of niets. Zo belooft de vraag vooraf alleen een voorstel als
+ * er echt een komt.
+ */
+export function krijgtVoorstel(
+  invoer: VoorstelInvoer,
+  eventId: string,
+  spelerId: string,
+  nu: Date,
+): Voorstel | null {
+  const meldingen = new Map(invoer.meldingen)
+  meldingen.set(eventId, [
+    ...(meldingen.get(eventId) ?? []),
+    { spelerId, status: 'nee', bron: 'leider', toelichting: null, gezetDoor: null, gezetOp: nu },
+  ])
+  const event = invoer.events.find((e) => e.id === eventId)
+  const speler = invoer.spelers.find((s) => s.id === spelerId)
+  if (!event || !speler) return null
+
+  return voorstellen({ ...invoer, events: [event], spelers: [speler], meldingen })[0] ?? null
+}

@@ -7,12 +7,16 @@ import { alsEuro } from './geld'
 export function teLaatVraag(invoer: {
   naam: string
   naar: 'ja' | 'nee'
-  /** Het bedrag van de vaste boete voor te laat afmelden, of niets zonder koppeling. */
+  /**
+   * Bij afmelden: het voorstel dat daarna klaarstaat. Bij weer aanmelden: het
+   * voorstel dat nu openstaat en dan vervalt. Niets als er geen is.
+   */
   voorstelCent: number | null
 }): string {
   const begin = 'De afmeldtermijn is voorbij.'
   if (invoer.naar === 'ja') {
-    return `${begin} ${invoer.naam} toch weer aanmelden? Een openstaand boetevoorstel vervalt dan.`
+    const vervalt = invoer.voorstelCent === null ? '' : ' Zijn openstaande boetevoorstel vervalt dan.'
+    return `${begin} ${invoer.naam} toch weer aanmelden?${vervalt}`
   }
   const voorstel =
     invoer.voorstelCent === null

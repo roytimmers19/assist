@@ -14,9 +14,12 @@ describe('de vraag aan de leider na de afmeldgrens', () => {
     )
   })
 
-  it('vraagt bij weer aanmelden ook om bevestiging', () => {
+  it('vraagt bij weer aanmelden ook om bevestiging, en noemt een openstaand voorstel', () => {
     expect(teLaatVraag({ naam: 'noot', naar: 'ja', voorstelCent: 1000 })).toBe(
-      'De afmeldtermijn is voorbij. noot toch weer aanmelden? Een openstaand boetevoorstel vervalt dan.',
+      'De afmeldtermijn is voorbij. noot toch weer aanmelden? Zijn openstaande boetevoorstel vervalt dan.',
+    )
+    expect(teLaatVraag({ naam: 'noot', naar: 'ja', voorstelCent: null })).toBe(
+      'De afmeldtermijn is voorbij. noot toch weer aanmelden?',
     )
   })
 })

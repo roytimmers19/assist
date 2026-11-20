@@ -46,8 +46,8 @@ bepaalt of hij moet bellen, schuiven of niets hoeft te doen.
   - Te laat afmelden is een stempel, geen slot: afmelden blijft altijd kunnen.
   - Meldt een leider iemand na de afmeldgrens af of weer aan, dan vraagt het
     weekoverzicht eerst om bevestiging met ja of nee. Bij afmelden noemt de
-    vraag het boetevoorstel, als er een vaste boete aan te laat afmelden hangt
-    (`specs/boetepot/spec.md`).
+    vraag het boetevoorstel alleen als dat er dan echt komt; bij weer aanmelden
+    alleen als er een openstaat dat dan vervalt (`specs/boetepot/spec.md`).
 
 ## Contract
 

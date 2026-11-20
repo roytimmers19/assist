@@ -152,7 +152,9 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
   niets wat hij daarna doet een voorstel op. Wie per ongeluk op "ik kom" tikt en
   zich daarna weer afmeldt, krijgt dus geen boete voorgesteld.
 - Voor dezelfde speler bij hetzelfde event bestaat hooguit één boete voor te
-  laat afmelden. Een voorstel dat bevestigd is of is gevallen, komt niet terug.
+  laat afmelden die niet is ingetrokken. Een voorstel dat bevestigd is of is
+  gevallen, komt niet terug. Wordt de bevestigde boete ingetrokken, dan levert
+  een nieuwe te late afmelding weer een voorstel op.
 - De boetepot werkt nooit met terugwerkende kracht: een afmelding van vóór de
   koppeling levert geen voorstel op. Gaat een vaste boete van de lijst, dan gaat
   zijn koppeling mee weg; terugzetten koppelt hem niet vanzelf opnieuw.
