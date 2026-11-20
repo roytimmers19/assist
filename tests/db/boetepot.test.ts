@@ -12,9 +12,10 @@ import {
   maakBetaaldOngedaan,
   trekBoeteIn,
   zetBetaald,
+  zetOverstapIn,
 } from '@/lib/db/boetepot'
 import { aanwezigheid, boetesoorten, events, spelers } from '@/lib/db/schema'
-import { openstaandCent, potCent, ranglijst } from '@/lib/domein/boetepot'
+import { nieuweBoetes, openstaandCent, potCent, ranglijst } from '@/lib/domein/boetepot'
 import { voorstellen } from '@/lib/domein/voorstellen'
 import { maakSchoon, testDb } from './opzet'
 
@@ -295,5 +296,70 @@ describe('voorstellen bij te laat afmelden', () => {
 
     const [vast] = await leesBoetesoorten(testDb)
     expect(vast.teLaatVoor).toBeNull()
+  })
+})
+
+describe('de overstap uit de oude app', () => {
+  beforeEach(maakSchoon)
+
+  it('zet alles in één keer over, met betaald waar dat zo was', async () => {
+    const [aap, noot] = [await nieuweSpeler('aap'), await nieuweSpeler('noot')]
+    const moment = new Date('2026-11-20T09:00:00Z')
+
+    await zetOverstapIn(
+      testDb,
+      [
+        { spelerId: aap, omschrijving: 'Gele kaart', bedragCent: 500, datum: '2026-09-13', betaald: true },
+        { spelerId: aap, omschrijving: 'Te laat', bedragCent: 200, datum: '2026-10-01', betaald: false },
+        { spelerId: noot, omschrijving: 'Rode kaart', bedragCent: 1500, datum: '2026-10-04', betaald: false },
+      ],
+      moment,
+    )
+
+    const boetes = await leesBoetes(testDb)
+    const lijst = ranglijst(boetes, [{ id: aap, naam: 'aap' }, { id: noot, naam: 'noot' }], 2026)
+    expect(lijst.plekken.map((p) => [p.naam, p.totaalCent])).toEqual([
+      ['noot', 1500],
+      ['aap', 700],
+    ])
+    expect(openstaandCent(aap, boetes)).toBe(200)
+    expect(openstaandCent(noot, boetes)).toBe(1500)
+  })
+
+  it('zet overgezette boetes niet als nieuw op het beginscherm', async () => {
+    const aap = await nieuweSpeler('aap')
+    const moment = new Date('2026-11-20T09:00:00Z')
+    await zetOverstapIn(
+      testDb,
+      [{ spelerId: aap, omschrijving: 'Te laat', bedragCent: 200, datum: '2026-11-19', betaald: false }],
+      moment,
+    )
+
+    expect(nieuweBoetes(aap, await leesBoetes(testDb), moment)).toHaveLength(1)
+    expect(nieuweBoetes(aap, await leesBoetes(testDb), new Date('2026-11-27T12:00:00Z'))).toEqual([])
+    const [boete] = await leesBoetes(testDb)
+    expect(boete.gegevenOp.getTime()).toBeLessThan(moment.getTime())
+  })
+
+  it('weigert als er al boetes zijn, en schrijft dan niets', async () => {
+    const aap = await nieuweSpeler('aap')
+    await geefBoetes(testDb, {
+      spelerIds: [aap],
+      omschrijving: 'Gele kaart',
+      bedragCent: 500,
+      datum: '2026-11-08',
+      eventId: null,
+      soortId: null,
+      door: aap,
+    })
+
+    await expect(
+      zetOverstapIn(
+        testDb,
+        [{ spelerId: aap, omschrijving: 'Te laat', bedragCent: 200, datum: '2026-10-01', betaald: false }],
+        new Date(),
+      ),
+    ).rejects.toThrow(/al boetes/)
+    expect(await leesBoetes(testDb)).toHaveLength(1)
   })
 })

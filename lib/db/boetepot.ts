@@ -1,6 +1,9 @@
 import { and, asc, eq, gte, inArray, isNull } from 'drizzle-orm'
+import { DateTime } from 'luxon'
 import type { Boete } from '@/lib/domein/boetepot'
 import { dagVan } from '@/lib/domein/afwezigheid'
+import type { OverstapRij } from '@/lib/domein/overstap'
+import { ZONE } from '@/lib/domein/tijd'
 import type { EventType } from '@/lib/domein/types'
 import type { Koppeling, Voorstel, VoorstelInvoer } from '@/lib/domein/voorstellen'
 import { leesMeldingen } from './aanwezigheid'
@@ -232,5 +235,30 @@ export async function koppelTeLaat(db: Db, type: EventType, soortId: string | nu
         .set({ teLaatVoor: type, teLaatGekoppeldOp: new Date() })
         .where(eq(boetesoorten.id, soortId))
     }
+  })
+}
+
+/**
+ * De eenmalige overstap uit de oude boeteapp: alles in één transactie, en
+ * alleen in een lege boetepot. Een overgezette boete heet gegeven op zijn
+ * eigen dag, zodat het beginscherm niet ineens een seizoen aan boetes als
+ * nieuw toont.
+ */
+export async function zetOverstapIn(db: Db, rijen: OverstapRij[], moment: Date): Promise<void> {
+  await db.transaction(async (tx) => {
+    const [bestaand] = await tx.select({ id: boetes.id }).from(boetes).limit(1)
+    if (bestaand) throw new Error('Er staan al boetes in de boetepot; de overstap draait alleen in een lege.')
+    if (rijen.length === 0) return
+
+    await tx.insert(boetes).values(
+      rijen.map((r) => ({
+        spelerId: r.spelerId,
+        omschrijving: r.omschrijving,
+        bedragCent: r.bedragCent,
+        datum: r.datum,
+        gegevenOp: DateTime.fromISO(r.datum, { zone: ZONE }).set({ hour: 12 }).toJSDate(),
+        betaaldOp: r.betaald ? moment : null,
+      })),
+    )
   })
 }
