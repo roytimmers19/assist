@@ -186,6 +186,16 @@ export default async function Boetes({
         </Link>
       )}
 
+      {/* Hier zoek je het: vaste boetes horen bij boetes, niet bij afrekenen. */}
+      {speler.magAfrekenen && !van && (
+        <Link
+          href="/boetepot/vaste-boetes"
+          className="kopregel -mt-3 grid min-h-11 place-items-center rounded-xl border border-rand bg-paneel-op text-sm text-tekst transition-colors hover:border-club-op/60"
+        >
+          Vaste boetes en voorstellen
+        </Link>
+      )}
+
       {perMaand.size === 0 && (
         <p className="rounded-xl border border-rand bg-paneel px-4 py-3 text-sm text-zacht">
           {van === speler.id

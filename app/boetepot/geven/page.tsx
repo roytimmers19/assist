@@ -20,7 +20,7 @@ function foutmelding(fout?: string): string | null {
   if (fout === 'wie') return 'Kies wie de boete krijgt.'
   if (fout === 'soort') return 'Kies waarvoor de boete is.'
   if (fout === 'omschrijving') return 'Schrijf op waarvoor de boete is.'
-  if (fout === 'bedrag') return 'Vul een bedrag in, zoals 1,50.'
+  if (fout === 'bedrag') return 'Vul een bedrag in tussen € 0,01 en € 1.000, zoals 1,50.'
   if (fout === 'aantal') return 'Kies een aantal tussen 1 en 99.'
   if (fout === 'event') return 'Die training of wedstrijd bestaat niet meer. Kies een andere.'
   return null
