@@ -133,7 +133,9 @@ export default async function VasteBoetes({
         </p>
         <div className="mt-3 flex flex-col gap-3">
           {(['wedstrijd', 'training'] as const).map((type) => {
-            const gekoppeld = actief.find((s) => s.teLaatVoor === type)
+            const gekoppeld = actief.find((s) =>
+              type === 'wedstrijd' ? s.teLaatWedstrijdOp : s.teLaatTrainingOp,
+            )
             return (
               <form key={type} action={koppelTeLaatAfmelden} className="flex flex-col gap-1">
                 <input type="hidden" name="type" value={type} />

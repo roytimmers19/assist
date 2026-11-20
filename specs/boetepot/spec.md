@@ -144,7 +144,11 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
 - Voor dezelfde speler bij hetzelfde event bestaat hooguit één boete voor te
   laat afmelden. Een voorstel dat bevestigd is of is gevallen, komt niet terug.
 - De boetepot werkt nooit met terugwerkende kracht: een afmelding van vóór de
-  koppeling levert geen voorstel op.
+  koppeling levert geen voorstel op. Gaat een vaste boete van de lijst, dan gaat
+  zijn koppeling mee weg; terugzetten koppelt hem niet vanzelf opnieuw.
+- Eén vaste boete mag bij te laat afmelden voor wedstrijden én voor trainingen
+  horen. Per soort event hoort er hooguit één bij.
+- Een bedrag ligt tussen € 0,01 en € 1.000. Meer is een tikfout.
 - De overstap schrijft alles of niets. Hij draait niet als er al boetes in de
   database staan.
 

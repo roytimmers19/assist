@@ -251,7 +251,8 @@ export const diensten = pgTable(
 /**
  * De vaste boetes. Een soort wordt uitgezet, nooit gewist, zodat oude boetes
  * er nog naar kunnen wijzen. Per soort event hoort hooguit één soort bij te
- * laat afmelden; vanaf `teLaatGekoppeldOp` doet de app daar voorstellen voor.
+ * laat afmelden, en één soort mag bij allebei horen. Het tijdstip is het
+ * moment van koppelen: vanaf dan doet de app voorstellen, leeg is niet gekoppeld.
  */
 export const boetesoorten = pgTable(
   'boetesoort',
@@ -260,15 +261,19 @@ export const boetesoorten = pgTable(
     omschrijving: text('omschrijving').notNull(),
     bedragCent: integer('bedrag_cent').notNull(),
     actief: boolean('actief').notNull().default(true),
-    teLaatVoor: text('te_laat_voor', { enum: ['training', 'wedstrijd'] }),
-    teLaatGekoppeldOp: timestamp('te_laat_gekoppeld_op', { withTimezone: true }),
+    teLaatWedstrijdOp: timestamp('te_laat_wedstrijd_op', { withTimezone: true }),
+    teLaatTrainingOp: timestamp('te_laat_training_op', { withTimezone: true }),
   },
   (tabel) => [
     check('boetesoort_omschrijving_gevuld', sql`length(btrim(${tabel.omschrijving})) > 0`),
     check('boetesoort_bedrag_positief', sql`${tabel.bedragCent} > 0`),
-    uniqueIndex('boetesoort_te_laat_idx')
-      .on(tabel.teLaatVoor)
-      .where(sql`${tabel.teLaatVoor} is not null`),
+    // Hooguit één gekoppelde soort per soort event: een unieke index op een vaste waarde.
+    uniqueIndex('boetesoort_te_laat_wedstrijd_idx')
+      .on(sql`(true)`)
+      .where(sql`${tabel.teLaatWedstrijdOp} is not null`),
+    uniqueIndex('boetesoort_te_laat_training_idx')
+      .on(sql`(true)`)
+      .where(sql`${tabel.teLaatTrainingOp} is not null`),
   ],
 )
 

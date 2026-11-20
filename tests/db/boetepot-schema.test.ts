@@ -91,13 +91,14 @@ describe('het schema van de boetepot', () => {
       testDb.insert(boetesoorten).values({ omschrijving: 'Niets', bedragCent: 0 }),
     ).rejects.toThrow()
 
+    const nu = new Date()
     await testDb
       .insert(boetesoorten)
-      .values({ omschrijving: 'Te laat afgemeld', bedragCent: 500, teLaatVoor: 'wedstrijd' })
+      .values({ omschrijving: 'Te laat afgemeld', bedragCent: 500, teLaatWedstrijdOp: nu, teLaatTrainingOp: nu })
     await expect(
       testDb
         .insert(boetesoorten)
-        .values({ omschrijving: 'Ook te laat', bedragCent: 300, teLaatVoor: 'wedstrijd' }),
+        .values({ omschrijving: 'Ook te laat', bedragCent: 300, teLaatWedstrijdOp: nu }),
     ).rejects.toThrow()
   })
 })

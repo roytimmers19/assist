@@ -24,6 +24,12 @@ describe('alsCenten', () => {
     expect(alsCenten('twee')).toBeNull()
     expect(alsCenten('1,2,3')).toBeNull()
   })
+
+  it('weigert een bedrag boven de duizend euro, zodat een tikfout niet vastloopt', () => {
+    expect(alsCenten('1000')).toBe(100000)
+    expect(alsCenten('1000,01')).toBeNull()
+    expect(alsCenten('30000000')).toBeNull()
+  })
 })
 
 describe('alsEuro', () => {

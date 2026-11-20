@@ -23,8 +23,8 @@ CREATE TABLE "boetesoort" (
 	"omschrijving" text NOT NULL,
 	"bedrag_cent" integer NOT NULL,
 	"actief" boolean DEFAULT true NOT NULL,
-	"te_laat_voor" text,
-	"te_laat_gekoppeld_op" timestamp with time zone,
+	"te_laat_wedstrijd_op" timestamp with time zone,
+	"te_laat_training_op" timestamp with time zone,
 	CONSTRAINT "boetesoort_omschrijving_gevuld" CHECK (length(btrim("boetesoort"."omschrijving")) > 0),
 	CONSTRAINT "boetesoort_bedrag_positief" CHECK ("boetesoort"."bedrag_cent" > 0)
 );
@@ -40,4 +40,5 @@ ALTER TABLE "boete" ADD CONSTRAINT "boete_betaald_door_speler_id_fk" FOREIGN KEY
 CREATE UNIQUE INDEX "boete_te_laat_idx" ON "boete" USING btree ("event_id","speler_id") WHERE "boete"."aanleiding" = 'te_laat_afgemeld';--> statement-breakpoint
 CREATE INDEX "boete_speler_idx" ON "boete" USING btree ("speler_id");--> statement-breakpoint
 CREATE INDEX "boete_datum_idx" ON "boete" USING btree ("datum");--> statement-breakpoint
-CREATE UNIQUE INDEX "boetesoort_te_laat_idx" ON "boetesoort" USING btree ("te_laat_voor") WHERE "boetesoort"."te_laat_voor" is not null;
+CREATE UNIQUE INDEX "boetesoort_te_laat_wedstrijd_idx" ON "boetesoort" USING btree ((true)) WHERE "boetesoort"."te_laat_wedstrijd_op" is not null;--> statement-breakpoint
+CREATE UNIQUE INDEX "boetesoort_te_laat_training_idx" ON "boetesoort" USING btree ((true)) WHERE "boetesoort"."te_laat_training_op" is not null;

@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, inArray, isNull } from 'drizzle-orm'
+import { and, asc, eq, gte, inArray, isNotNull, isNull } from 'drizzle-orm'
 import { DateTime } from 'luxon'
 import type { Boete } from '@/lib/domein/boetepot'
 import { dagVan } from '@/lib/domein/afwezigheid'
@@ -103,16 +103,13 @@ export async function laatVoorstelVallen(db: Db, voorstel: Voorstel, door: strin
  * koppeling: daarvoor kan er geen voorstel zijn.
  */
 export async function leesVoorstelInvoer(db: Db): Promise<VoorstelInvoer> {
-  const gekoppeld = (await leesBoetesoorten(db)).filter(
-    (s) => s.actief && s.teLaatVoor && s.teLaatGekoppeldOp,
-  )
-  const koppelingen: Koppeling[] = gekoppeld.map((s) => ({
-    type: s.teLaatVoor as EventType,
-    soortId: s.id,
-    omschrijving: s.omschrijving,
-    bedragCent: s.bedragCent,
-    gekoppeldOp: s.teLaatGekoppeldOp!,
-  }))
+  const koppelingen: Koppeling[] = []
+  for (const s of await leesBoetesoorten(db)) {
+    if (!s.actief) continue
+    const vast = { soortId: s.id, omschrijving: s.omschrijving, bedragCent: s.bedragCent }
+    if (s.teLaatWedstrijdOp) koppelingen.push({ type: 'wedstrijd', ...vast, gekoppeldOp: s.teLaatWedstrijdOp })
+    if (s.teLaatTrainingOp) koppelingen.push({ type: 'training', ...vast, gekoppeldOp: s.teLaatTrainingOp })
+  }
 
   const leeg: VoorstelInvoer = {
     events: [],
@@ -209,8 +206,20 @@ export async function bewaarBoetesoort(
   return rij.id
 }
 
+/**
+ * Gaat een vaste boete van de lijst, dan gaat ook zijn koppeling aan te laat
+ * afmelden weg. Anders zou terugzetten voorstellen opleveren over alles wat er
+ * in de tussentijd gebeurde.
+ */
 export async function zetSoortActief(db: Db, id: string, actief: boolean): Promise<void> {
-  await db.update(boetesoorten).set({ actief }).where(eq(boetesoorten.id, id))
+  await db
+    .update(boetesoorten)
+    .set(actief ? { actief } : { actief, teLaatWedstrijdOp: null, teLaatTrainingOp: null })
+    .where(eq(boetesoorten.id, id))
+}
+
+function koppelkolom(type: EventType) {
+  return type === 'wedstrijd' ? boetesoorten.teLaatWedstrijdOp : boetesoorten.teLaatTrainingOp
 }
 
 /**
@@ -219,21 +228,21 @@ export async function zetSoortActief(db: Db, id: string, actief: boolean): Promi
  * nog eens bewaren verschuift dat moment niet.
  */
 export async function koppelTeLaat(db: Db, type: EventType, soortId: string | null): Promise<void> {
+  const kolom = koppelkolom(type)
+  const veld = type === 'wedstrijd' ? 'teLaatWedstrijdOp' : 'teLaatTrainingOp'
+
   await db.transaction(async (tx) => {
-    const [huidig] = await tx.select().from(boetesoorten).where(eq(boetesoorten.teLaatVoor, type))
+    const [huidig] = await tx.select().from(boetesoorten).where(isNotNull(kolom))
     if (huidig?.id === soortId) return
 
     if (huidig) {
-      await tx
-        .update(boetesoorten)
-        .set({ teLaatVoor: null, teLaatGekoppeldOp: null })
-        .where(eq(boetesoorten.id, huidig.id))
+      await tx.update(boetesoorten).set({ [veld]: null }).where(eq(boetesoorten.id, huidig.id))
     }
     if (soortId) {
       await tx
         .update(boetesoorten)
-        .set({ teLaatVoor: type, teLaatGekoppeldOp: new Date() })
-        .where(eq(boetesoorten.id, soortId))
+        .set({ [veld]: new Date() })
+        .where(and(eq(boetesoorten.id, soortId), eq(boetesoorten.actief, true)))
     }
   })
 }

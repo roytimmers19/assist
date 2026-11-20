@@ -66,4 +66,17 @@ describe('planOverstap', () => {
       ],
     })
   })
+
+  it('weigert betaald als tekst in plaats van ja of nee', () => {
+    const plan = planOverstap(
+      {
+        spelers: koppeling,
+        boetes: [
+          { speler: 'Noot', omschrijving: 'Te laat', bedrag: '2', datum: '2026-10-01', betaald: 'false' as unknown as boolean },
+        ],
+      },
+      spelers,
+    )
+    expect(plan).toEqual({ fouten: ['Boete 1: betaald moet true of false zijn'] })
+  })
 })

@@ -45,6 +45,8 @@ export function planOverstap(
       fouten.push(`${nummer}: datum "${boete.datum}" is geen datum als 2026-10-01`)
     }
     if (!omschrijving) fouten.push(`${nummer}: omschrijving ontbreekt`)
+    // Een met de hand bewerkt bestand kan "false" als tekst bevatten, en dat is waar.
+    if (typeof boete.betaald !== 'boolean') fouten.push(`${nummer}: betaald moet true of false zijn`)
 
     if (spelerId && bedragCent !== null) {
       rijen.push({ spelerId, omschrijving, bedragCent, datum: boete.datum, betaald: boete.betaald })

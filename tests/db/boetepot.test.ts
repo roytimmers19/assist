@@ -13,6 +13,7 @@ import {
   trekBoeteIn,
   zetBetaald,
   zetOverstapIn,
+  zetSoortActief,
 } from '@/lib/db/boetepot'
 import { aanwezigheid, boetesoorten, events, spelers } from '@/lib/db/schema'
 import { nieuweBoetes, openstaandCent, potCent, ranglijst } from '@/lib/domein/boetepot'
@@ -217,7 +218,7 @@ describe('voorstellen bij te laat afmelden', () => {
     // De koppeling ligt in het verleden van deze afmelding: zet hem vast.
     await testDb
       .update(boetesoorten)
-      .set({ teLaatGekoppeldOp: new Date('2026-11-01T00:00:00Z') })
+      .set({ teLaatWedstrijdOp: new Date('2026-11-01T00:00:00Z') })
       .where(eq(boetesoorten.id, soort))
     await testDb.insert(aanwezigheid).values({
       eventId,
@@ -265,6 +266,26 @@ describe('voorstellen bij te laat afmelden', () => {
     expect(voorstellen(await leesVoorstelInvoer(testDb))).toEqual([])
   })
 
+  it('laat één vaste boete gelden voor wedstrijden en trainingen tegelijk', async () => {
+    const soort = await bewaarBoetesoort(testDb, { omschrijving: 'Te laat afgemeld', bedragCent: 500 })
+
+    await koppelTeLaat(testDb, 'wedstrijd', soort)
+    await koppelTeLaat(testDb, 'training', soort)
+
+    const invoer = await leesVoorstelInvoer(testDb)
+    expect(invoer.koppelingen.map((k) => k.type).sort()).toEqual(['training', 'wedstrijd'])
+  })
+
+  it('haalt de koppeling weg als een vaste boete van de lijst gaat, ook na terugzetten', async () => {
+    const soort = await bewaarBoetesoort(testDb, { omschrijving: 'Te laat afgemeld', bedragCent: 500 })
+    await koppelTeLaat(testDb, 'wedstrijd', soort)
+
+    await zetSoortActief(testDb, soort, false)
+    await zetSoortActief(testDb, soort, true)
+
+    expect((await leesVoorstelInvoer(testDb)).koppelingen).toEqual([])
+  })
+
   it('koppelt per soort event hooguit één vaste boete', async () => {
     const eerste = await bewaarBoetesoort(testDb, { omschrijving: 'Te laat afgemeld', bedragCent: 500 })
     const tweede = await bewaarBoetesoort(testDb, { omschrijving: 'Te laat, duur', bedragCent: 800 })
@@ -273,8 +294,8 @@ describe('voorstellen bij te laat afmelden', () => {
     await koppelTeLaat(testDb, 'wedstrijd', tweede)
 
     const soorten = await leesBoetesoorten(testDb)
-    expect(soorten.find((s) => s.id === eerste)?.teLaatVoor).toBeNull()
-    expect(soorten.find((s) => s.id === tweede)?.teLaatVoor).toBe('wedstrijd')
+    expect(soorten.find((s) => s.id === eerste)?.teLaatWedstrijdOp).toBeNull()
+    expect(soorten.find((s) => s.id === tweede)?.teLaatWedstrijdOp).not.toBeNull()
   })
 
   it('verschuift het moment van koppelen niet als dezelfde keuze nog eens bewaard wordt', async () => {
@@ -285,7 +306,7 @@ describe('voorstellen bij te laat afmelden', () => {
     await koppelTeLaat(testDb, 'wedstrijd', soort)
 
     const [na] = await leesBoetesoorten(testDb)
-    expect(na.teLaatGekoppeldOp).toEqual(voor.teLaatGekoppeldOp)
+    expect(na.teLaatWedstrijdOp).toEqual(voor.teLaatWedstrijdOp)
   })
 
   it('haalt de koppeling weg met geen voorstel', async () => {
@@ -295,7 +316,7 @@ describe('voorstellen bij te laat afmelden', () => {
     await koppelTeLaat(testDb, 'training', null)
 
     const [vast] = await leesBoetesoorten(testDb)
-    expect(vast.teLaatVoor).toBeNull()
+    expect(vast.teLaatTrainingOp).toBeNull()
   })
 })
 

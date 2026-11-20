@@ -1,5 +1,5 @@
 {
-  "id": "62be3d6e-1343-48e5-9f22-6a598e396e0f",
+  "id": "25842b62-bfee-484f-8bfe-c729b63686ac",
   "prevId": "da1fe1f1-5c99-4bf9-b194-069a0da360ad",
   "version": "7",
   "dialect": "postgresql",
@@ -528,32 +528,48 @@
           "notNull": true,
           "default": true
         },
-        "te_laat_voor": {
-          "name": "te_laat_voor",
-          "type": "text",
+        "te_laat_wedstrijd_op": {
+          "name": "te_laat_wedstrijd_op",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
-        "te_laat_gekoppeld_op": {
-          "name": "te_laat_gekoppeld_op",
+        "te_laat_training_op": {
+          "name": "te_laat_training_op",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         }
       },
       "indexes": {
-        "boetesoort_te_laat_idx": {
-          "name": "boetesoort_te_laat_idx",
+        "boetesoort_te_laat_wedstrijd_idx": {
+          "name": "boetesoort_te_laat_wedstrijd_idx",
           "columns": [
             {
-              "expression": "te_laat_voor",
-              "isExpression": false,
+              "expression": "(true)",
               "asc": true,
+              "isExpression": true,
               "nulls": "last"
             }
           ],
           "isUnique": true,
-          "where": "\"boetesoort\".\"te_laat_voor\" is not null",
+          "where": "\"boetesoort\".\"te_laat_wedstrijd_op\" is not null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "boetesoort_te_laat_training_idx": {
+          "name": "boetesoort_te_laat_training_idx",
+          "columns": [
+            {
+              "expression": "(true)",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"boetesoort\".\"te_laat_training_op\" is not null",
           "concurrently": false,
           "method": "btree",
           "with": {}
