@@ -46,11 +46,17 @@ export function actueleStand(
 }
 
 /**
- * Wat een leider leest bij een stand die een leider zette. Alleen wie het zelf
- * deed leest "door jou"; de rest leest niet wie het was. Zo blijft ook een
- * beheerder buiten beeld.
+ * Wat een leider leest bij een stand die een leider zette: "door jou gezet",
+ * of de naam van wie het deed, ook als dat de beheerder was. Is de naam niet
+ * meer te achterhalen, dan "door een leider gezet".
  */
-export function gezetDoorTekst(stand: Stand, kijkerId: string): string | null {
+export function gezetDoorTekst(
+  stand: Stand,
+  kijkerId: string,
+  naamVan: Map<string, string>,
+): string | null {
   if (stand.bron !== 'leider') return null
-  return stand.gezetDoor === kijkerId ? 'door jou gezet' : 'door een leider gezet'
+  if (stand.gezetDoor === kijkerId) return 'door jou gezet'
+  const naam = stand.gezetDoor ? naamVan.get(stand.gezetDoor) : undefined
+  return naam ? `door ${naam} gezet` : 'door een leider gezet'
 }
