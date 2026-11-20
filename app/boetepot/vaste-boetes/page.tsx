@@ -21,7 +21,7 @@ function alsInvoer(cent: number): string {
 
 function foutmelding(fout?: string): string | null {
   if (fout === 'omschrijving') return 'Schrijf op waarvoor de boete is.'
-  if (fout === 'bedrag') return 'Vul een bedrag in, zoals 1,50.'
+  if (fout === 'bedrag') return 'Vul een bedrag in tussen € 0,01 en € 1.000, zoals 1,50.'
   return null
 }
 
@@ -39,8 +39,8 @@ export default async function VasteBoetes({
   return (
     <Schil naam={speler.naam} isLeider={speler.magLeiden} tab="boetepot">
       <div>
-        <Link href="/boetepot/afrekenen" className="text-sm text-club-op">
-          ← Afrekenen
+        <Link href="/boetepot/boetes" className="text-sm text-club-op">
+          ← Boetes
         </Link>
         <h1 className="uithangbord mt-2 text-[2.1rem]">Vaste boetes</h1>
       </div>
@@ -165,8 +165,9 @@ export default async function VasteBoetes({
       <section className="rounded-2xl border border-rand bg-paneel p-4">
         <h2 className="bovenkop text-zacht">Voorstel bij te laat afmelden</h2>
         <p className="mt-2 text-sm text-zacht">
-          Meldt iemand zich na de afmeldgrens zelf af, dan zet de app deze boete klaar om te
-          bevestigen. De app begint pas vanaf het moment dat je hier iets kiest.
+          Wordt iemand na de afmeldgrens afgemeld, door zichzelf of door een leider, dan zet de
+          app deze boete klaar om te bevestigen. De app begint pas vanaf het moment dat je hier
+          iets kiest.
         </p>
         <div className="mt-3 flex flex-col gap-3">
           {(['wedstrijd', 'training'] as const).map((type) => {

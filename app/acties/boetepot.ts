@@ -136,6 +136,8 @@ export async function bewaarVasteBoete(formulier: FormData) {
     perStuk: alsVinkje(formulier, 'perStuk'),
   })
   ververs()
+  // Terug naar een schoon adres, zodat een eerdere foutmelding verdwijnt.
+  redirect('/boetepot/vaste-boetes')
 }
 
 export async function zetVasteBoeteActief(formulier: FormData) {
@@ -143,6 +145,8 @@ export async function zetVasteBoeteActief(formulier: FormData) {
   const soortId = alsId(alsTekst(formulier, 'soortId'))
   if (soortId) await zetSoortActief(db(), soortId, alsVinkje(formulier, 'actief'))
   ververs()
+  // Terug naar een schoon adres, zodat een eerdere foutmelding verdwijnt.
+  redirect('/boetepot/vaste-boetes')
 }
 
 export async function koppelTeLaatAfmelden(formulier: FormData) {
@@ -155,4 +159,6 @@ export async function koppelTeLaatAfmelden(formulier: FormData) {
   if (gekozen && !soort) redirect('/boetepot/vaste-boetes')
   await koppelTeLaat(db(), type, soort?.id ?? null)
   ververs()
+  // Terug naar een schoon adres, zodat een eerdere foutmelding verdwijnt.
+  redirect('/boetepot/vaste-boetes')
 }

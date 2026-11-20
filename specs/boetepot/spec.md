@@ -107,7 +107,8 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
       bevestigingsvraag. Op die regel staat daarna "Ongedaan maken" tot je het
       scherm verlaat. Wie alles betaald heeft, staat ingeklapt onder
       "Afgerekend", ook met "Ongedaan maken".
-- [x] De pagina **Vaste boetes**, via een link op Afrekenen, toont de soorten
+- [x] De pagina **Vaste boetes**, via een knop op Boetes en een link op
+      Afrekenen, toont de soorten
       op bedrag, en welke soort hoort bij te laat afmelden voor een training en
       voor een wedstrijd.
 - [x] In het spelersoverzicht zet een leider per speler de vinkjes
