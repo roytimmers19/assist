@@ -311,6 +311,28 @@ describe('voorstellen bij te laat afmelden', () => {
     expect((await leesVoorstelInvoer(testDb)).koppelingen).toEqual([])
   })
 
+  it('doet ook een voorstel bij een event van vóór het koppelen, als de afmelding erna kwam', async () => {
+    const [mies, noot] = [await nieuweSpeler('mies'), await nieuweSpeler('noot')]
+    const eventId = await nieuweWedstrijd()
+    const soort = await bewaarBoetesoort(testDb, { omschrijving: 'Te laat afgemeld', bedragCent: 500 })
+    await koppelTeLaat(testDb, 'wedstrijd', soort)
+    // De wedstrijd was al voorbij toen de boete werd gekoppeld.
+    await testDb
+      .update(boetesoorten)
+      .set({ teLaatWedstrijdOp: new Date('2026-11-23T09:00:00Z') })
+      .where(eq(boetesoorten.id, soort))
+    await testDb.insert(aanwezigheid).values({
+      eventId,
+      spelerId: noot,
+      status: 'nee',
+      bron: 'leider',
+      gezetOp: new Date('2026-11-23T10:00:00Z'),
+      gezetDoorSpelerId: mies,
+    })
+
+    expect(voorstellen(await leesVoorstelInvoer(testDb))).toMatchObject([{ eventId, spelerId: noot }])
+  })
+
   it('koppelt per soort event hooguit één vaste boete', async () => {
     const eerste = await bewaarBoetesoort(testDb, { omschrijving: 'Te laat afgemeld', bedragCent: 500 })
     const tweede = await bewaarBoetesoort(testDb, { omschrijving: 'Te laat, duur', bedragCent: 800 })

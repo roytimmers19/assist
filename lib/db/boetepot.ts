@@ -8,7 +8,7 @@ import type { EventType } from '@/lib/domein/types'
 import type { Koppeling, Voorstel, VoorstelInvoer } from '@/lib/domein/voorstellen'
 import { leesMeldingen } from './aanwezigheid'
 import type { Db } from './client'
-import { boetes, boetesoorten, events } from './schema'
+import { aanwezigheid, boetes, boetesoorten, events } from './schema'
 import { leesActieveSpelers } from './spelers'
 
 export type BoetesoortRij = typeof boetesoorten.$inferSelect
@@ -104,8 +104,7 @@ export async function laatVoorstelVallen(db: Db, voorstel: Voorstel, door: strin
 }
 
 /**
- * Alles wat een voorstel nodig heeft. Alleen events vanaf de vroegste
- * koppeling: daarvoor kan er geen voorstel zijn.
+ * Alles wat een voorstel nodig heeft.
  */
 export async function leesVoorstelInvoer(db: Db): Promise<VoorstelInvoer> {
   const koppelingen: Koppeling[] = []
@@ -125,13 +124,25 @@ export async function leesVoorstelInvoer(db: Db): Promise<VoorstelInvoer> {
   }
   if (koppelingen.length === 0) return leeg
 
+  // Alleen events met een melding van ná de vroegste koppeling: daarvoor kan
+  // geen voorstel zijn. Het gaat om wanneer iemand werd afgemeld, niet om
+  // wanneer het event was, dus ook een training van gisteren telt mee.
   const vanaf = new Date(Math.min(...koppelingen.map((k) => k.gekoppeldOp.getTime())))
+  const recent = await db
+    .selectDistinct({ eventId: aanwezigheid.eventId })
+    .from(aanwezigheid)
+    .where(gte(aanwezigheid.gezetOp, vanaf))
+  if (recent.length === 0) return leeg
+
   const eventRijen = await db
     .select()
     .from(events)
     .where(
       and(
-        gte(events.startOp, vanaf),
+        inArray(
+          events.id,
+          recent.map((r) => r.eventId),
+        ),
         inArray(
           events.type,
           koppelingen.map((k) => k.type),
