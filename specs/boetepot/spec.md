@@ -42,7 +42,8 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
   spelersoverzicht (de twee vinkjes)
 - **Grenzen:**
   - Bedragen zijn hele centen, altijd groter dan nul. Een euroteken en een
-    komma zijn er alleen in het scherm.
+    komma zijn er alleen in het scherm, op de Nederlandse manier: `€ 1,50` en
+    `€ 5,00`.
   - Datums en het seizoen rekenen in `Europe/Amsterdam`. Een seizoen begint op
     1 juli. Een boete hoort bij het seizoen van zijn datum.
   - Assist kent geen rekeningnummer, geen betaallink en geen saldo. Een boete
@@ -65,9 +66,13 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
   - Wie mag wat beslissen `magBoetesGeven` en `magAfrekenen` in
     `lib/domein/rechten.ts`. Een pagina of actie vraagt het de sessie en kijkt
     zelf niet naar de vinkjes.
-  - Elk scherm van de boetepot is een eigen pagina. Bovenaan staan de
-    onderdelen waar je tussen wisselt; je ziet alleen de onderdelen die je mag
-    gebruiken.
+  - Elk scherm van de boetepot is een eigen pagina. Bovenaan staan hooguit
+    drie onderdelen waar je tussen wisselt: Ranglijst, Boetes en, voor wie mag
+    afrekenen, Afrekenen. De vaste boetes en Boete geven zijn eigen pagina's
+    met een weg terug.
+  - De schermen volgen de bouwstenen die Assist al heeft: het blauwe blok van
+    de wedstrijd, de regels met een datum of rugnummer links, het blok "Wacht
+    op jou" en knoppen van minstens 44 pixels hoog.
   - Het overzicht uit de oude app bevat echte namen. Het staat in
     `scripts/boetepot-overstap.json`, dat Git negeert, en nergens anders.
 
@@ -77,9 +82,11 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
 
 - [ ] Een tab **Boetepot** staat voor iedereen in de ploeg in de balk. Hij
       opent op de **ranglijst**: bovenaan wat er dit seizoen in de pot zit,
-      daaronder elke actieve speler met zijn totaalbedrag aan boetes van dit
-      seizoen, het hoogste bovenaan, de top drie uitgelicht. Er staat geen
-      aantal bij. Een vorig seizoen is op te vragen.
+      daaronder elke actieve speler met een boete en zijn totaalbedrag van dit
+      seizoen, het hoogste bovenaan, de top drie uitgelicht met een groter
+      cijfer en een eigen vlak. Je eigen regel is gemarkeerd met "jij". Wie nog
+      geen boete heeft, staat met naam onder "Nog schoon". Er staat geen aantal
+      bij. Een vorig seizoen is op te vragen.
 - [ ] Het onderdeel **Boetes** toont alle boetes van het seizoen: wie,
       waarvoor, hoeveel en wanneer. Ingetrokken boetes staan doorgestreept. Wie
       boetes mag geven ziet hier bovenaan de voorstellen, met "Bevestigen" en
@@ -88,10 +95,13 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
       boetelijst of een eigen omschrijving met bedrag, en eventueel de training
       of wedstrijd waar hij bij hoort.
 - [ ] Het onderdeel **Afrekenen** toont per speler wat hij nog open heeft. Met
-      "Betaald" staan al zijn openstaande boetes op betaald; met "Ongedaan
-      maken" draait de afrekenaar dat terug.
-- [ ] Het onderdeel **Boetelijst** toont de soorten met hun bedrag, en welke
-      soort hoort bij te laat afmelden voor een training en voor een wedstrijd.
+      "Betaald" staan al zijn openstaande boetes op betaald, zonder
+      bevestigingsvraag. Op die regel staat daarna "Ongedaan maken" tot je het
+      scherm verlaat. Wie alles betaald heeft, staat ingeklapt onder
+      "Afgerekend", ook met "Ongedaan maken".
+- [ ] De pagina **Vaste boetes**, via een link op Afrekenen, toont de soorten
+      op bedrag, en welke soort hoort bij te laat afmelden voor een training en
+      voor een wedstrijd.
 - [ ] In het spelersoverzicht zet een leider per speler de vinkjes
       "Penningmeester" en "Boete-uitdeler".
 - [ ] Een nieuwe boete staat zeven dagen op het beginscherm van wie hem kreeg.
@@ -141,12 +151,13 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
 ### Scenario's
 
 ```gherkin
-Scenario: de ranglijst toont elke speler met zijn totaalbedrag, het hoogste bovenaan
+Scenario: de ranglijst toont elke speler, het hoogste bedrag bovenaan
   Gegeven dat aap €30, noot €20 en mies €10 aan boetes heeft dit seizoen
   En wim geen boetes heeft
   Als iemand de tab Boetepot opent
-  Dan staat er: aap €30, noot €20, mies €10, wim €0
+  Dan staat er: aap €30, noot €20, mies €10
   En zijn aap, noot en mies uitgelicht
+  En staat wim onder "Nog schoon"
   En staat er bij niemand een aantal
 ```
 
@@ -158,15 +169,6 @@ Scenario: bij een gelijk bedrag delen spelers een plek
   Als de ranglijst wordt getoond
   Dan staan aap en noot allebei op plek 1, op naam gesorteerd
   En staat mies op plek 3
-```
-
-Bewezen door: `tests/domein/boetepot.test.ts`
-
-```gherkin
-Scenario: wie op €0 staat wordt niet uitgelicht
-  Gegeven dat alleen aap dit seizoen een boete heeft
-  Als de ranglijst wordt getoond
-  Dan is alleen aap uitgelicht
 ```
 
 Bewezen door: `tests/domein/boetepot.test.ts`
