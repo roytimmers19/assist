@@ -13,8 +13,9 @@ import { leesBoetes, leesVoorstelInvoer } from '@/lib/db/boetepot'
 import { db } from '@/lib/db/client'
 import { events } from '@/lib/db/schema'
 import { leesAlleSpelers } from '@/lib/db/spelers'
-import { type Boete, huidigSeizoen, seizoenVan } from '@/lib/domein/boetepot'
+import { type Boete, huidigSeizoen, seizoenVan, totaalVan } from '@/lib/domein/boetepot'
 import { voorstellen } from '@/lib/domein/voorstellen'
+import { alsId } from '@/lib/weergave/boeteformulier'
 import { alsEuro } from '@/lib/weergave/geld'
 import { eventTitel } from '@/lib/weergave/namen'
 import { alsDagZonderTijd } from '@/lib/weergave/tijd'
@@ -29,7 +30,13 @@ const kleineKnop =
 function groepeer(boetes: Boete[]): Boete[][] {
   const groepen = new Map<string, Boete[]>()
   for (const b of boetes) {
-    const sleutel = [b.omschrijving, b.bedragCent, b.datum, b.gegevenOp.getTime(), b.ingetrokkenOp !== null].join('|')
+    const sleutel = [
+      b.omschrijving,
+      b.bedragCent,
+      b.datum,
+      b.gegevenOp.getTime(),
+      b.ingetrokkenOp !== null,
+    ].join('|')
     groepen.set(sleutel, [...(groepen.get(sleutel) ?? []), b])
   }
   return [...groepen.values()]
@@ -43,25 +50,42 @@ function maand(datum: string): string {
   return DateTime.fromISO(datum, { locale: 'nl' }).toFormat('LLLL yyyy')
 }
 
-export default async function Boetes() {
+const keuze =
+  'kopregel grid min-h-11 place-items-center rounded-full border px-4 text-sm transition-colors'
+
+export default async function Boetes({
+  searchParams,
+}: {
+  searchParams: Promise<{ wie?: string }>
+}) {
   const speler = await vereisSpeler()
+  // Van wie de boetes: iedereen, jezelf ("mij"), of een speler uit de ranglijst.
+  const { wie } = await searchParams
+  const van = wie === 'mij' ? speler.id : alsId(wie ?? '')
   const verbinding = db()
   const [boetes, spelers] = await Promise.all([leesBoetes(verbinding), leesAlleSpelers(verbinding)])
   const naamVan = new Map(spelers.map((s) => [s.id, s.weergavenaam ?? s.naam]))
 
-  const voorgesteld = speler.magBoetesGeven ? voorstellen(await leesVoorstelInvoer(verbinding)) : []
+  const voorgesteld =
+    speler.magBoetesGeven && !van ? voorstellen(await leesVoorstelInvoer(verbinding)) : []
   const eventRijen =
     voorgesteld.length > 0
       ? await verbinding
           .select()
           .from(events)
-          .where(inArray(events.id, voorgesteld.map((v) => v.eventId)))
+          .where(
+            inArray(
+              events.id,
+              voorgesteld.map((v) => v.eventId),
+            ),
+          )
       : []
   const eventVan = new Map(eventRijen.map((e) => [e.id, e]))
 
   const seizoen = huidigSeizoen(new Date())
   const ditSeizoen = boetes
     .filter((b) => b.status === 'telt' && seizoenVan(b.datum) === seizoen)
+    .filter((b) => !van || b.spelerId === van)
     .sort((a, b) => b.datum.localeCompare(a.datum) || b.gegevenOp.getTime() - a.gegevenOp.getTime())
 
   const perMaand = new Map<string, Boete[][]>()
@@ -73,6 +97,38 @@ export default async function Boetes() {
   return (
     <Schil naam={speler.naam} isLeider={speler.magLeiden} tab="boetepot">
       <Onderdelen actief="boetes" magAfrekenen={speler.magAfrekenen} />
+
+      <nav aria-label="Van wie" className="flex gap-2">
+        <Link
+          href="/boetepot/boetes"
+          aria-current={!van ? 'page' : undefined}
+          className={`${keuze} ${!van ? 'border-club-op bg-club/15 text-tekst' : 'border-rand text-zacht'}`}
+        >
+          Alle boetes
+        </Link>
+        <Link
+          href="/boetepot/boetes?wie=mij"
+          aria-current={van === speler.id ? 'page' : undefined}
+          className={`${keuze} ${
+            van === speler.id ? 'border-club-op bg-club/15 text-tekst' : 'border-rand text-zacht'
+          }`}
+        >
+          Mijn boetes
+        </Link>
+      </nav>
+
+      {van && (
+        <section className="rounded-2xl border border-rand bg-paneel p-4">
+          <p className="bovenkop text-zacht">
+            {van === speler.id
+              ? 'Jij dit seizoen'
+              : `${naamVan.get(van) ?? 'Onbekend'} dit seizoen`}
+          </p>
+          <p className="uithangbord cijfers mt-2 text-[2.1rem]">
+            {alsEuro(totaalVan(van, boetes, seizoen))}
+          </p>
+        </section>
+      )}
 
       {voorgesteld.length > 0 && (
         <section className="rounded-2xl border border-club-op/50 bg-club/10 p-4">
@@ -131,7 +187,11 @@ export default async function Boetes() {
 
       {perMaand.size === 0 && (
         <p className="rounded-xl border border-rand bg-paneel px-4 py-3 text-sm text-zacht">
-          Er zijn dit seizoen nog geen boetes gegeven.
+          {van === speler.id
+            ? 'Je hebt dit seizoen nog geen boetes. Houden zo.'
+            : van
+              ? 'Geen boetes dit seizoen.'
+              : 'Er zijn dit seizoen nog geen boetes gegeven.'}
         </p>
       )}
 
@@ -164,7 +224,9 @@ export default async function Boetes() {
                       {ingetrokken && ' · ingetrokken'}
                     </span>
                   </span>
-                  <span className={`cijfers text-sm ${ingetrokken ? 'text-zacht line-through' : ''}`}>
+                  <span
+                    className={`cijfers text-sm ${ingetrokken ? 'text-zacht line-through' : ''}`}
+                  >
                     {alsEuro(eerste.bedragCent)}
                   </span>
                 </>
@@ -182,7 +244,9 @@ export default async function Boetes() {
                           <form key={b.id} action={trekBoeteInAlsGever}>
                             <input type="hidden" name="boeteId" value={b.id} />
                             <button className={kleineKnop}>
-                              {groep.length > 1 ? `Trek in bij ${naamVan.get(b.spelerId)}` : 'Trek deze boete in'}
+                              {groep.length > 1
+                                ? `Trek in bij ${naamVan.get(b.spelerId)}`
+                                : 'Trek deze boete in'}
                             </button>
                           </form>
                         ))}

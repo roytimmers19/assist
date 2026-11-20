@@ -91,6 +91,10 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
       waarvoor, hoeveel en wanneer. Ingetrokken boetes staan doorgestreept. Wie
       boetes mag geven ziet hier bovenaan de voorstellen, met "Bevestigen" en
       "Laten vallen", en een knop naar **Boete geven**.
+- [x] Op **Boetes** kies je tussen "Alle boetes" en "Mijn boetes". Elke speler in
+      de ranglijst is aan te tikken en toont alleen zijn boetes; op jezelf is
+      dat "Mijn boetes". Bovenaan staat dan alleen zijn totaal van dit seizoen,
+      niets over betaald of open.
 - [x] **Boete geven** is een eigen scherm: een of meer spelers, een soort uit de
       boetelijst of een eigen omschrijving met bedrag, en eventueel de training
       of wedstrijd waar hij bij hoort.
@@ -206,6 +210,19 @@ Scenario: het seizoen begint op 1 juli
 ```
 
 Bewezen door: `tests/domein/boetepot.test.ts`
+
+```gherkin
+Scenario: je eigen boetes, of die van een ander uit de ranglijst
+  Gegeven dat aap dit seizoen boetes van €5 en €2 heeft, waarvan €2 betaald
+  En noot een boete van €10
+  Als aap op Boetes "Mijn boetes" kiest
+  Dan ziet hij alleen zijn twee boetes en bovenaan €7
+  En staat er niets over wat betaald of open is
+  Maar tikt hij in de ranglijst op noot, dan ziet hij alleen noots boete en €10
+```
+
+Bewezen door: `tests/domein/boetepot.test.ts` (het totaal); het filter met de
+hand nagelopen.
 
 ```gherkin
 Scenario: een boete-uitdeler geeft twee spelers tegelijk een boete uit de lijst

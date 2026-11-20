@@ -90,6 +90,14 @@ export function potCent(boetes: Boete[], seizoen: number): number {
     .reduce((som, b) => som + b.bedragCent, 0)
 }
 
+/** Wat één speler in een seizoen aan boetes kreeg, betaald of niet: zijn regel in de ranglijst. */
+export function totaalVan(spelerId: string, boetes: Boete[], seizoen: number): number {
+  return potCent(
+    boetes.filter((b) => b.spelerId === spelerId),
+    seizoen,
+  )
+}
+
 /** Wat een speler nog moet betalen, over alle seizoenen. */
 export function openstaandCent(spelerId: string, boetes: Boete[]): number {
   return boetes
