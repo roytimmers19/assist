@@ -100,10 +100,13 @@ export async function bewerkSpeler(formulier: FormData) {
     rol: wordtLeider ? 'leider' : 'speler',
     doetTrainingen: alsVinkje(formulier, 'doetTrainingen'),
     doetWedstrijden: alsVinkje(formulier, 'doetWedstrijden'),
+    penningmeester: alsVinkje(formulier, 'penningmeester'),
+    boeteUitdeler: alsVinkje(formulier, 'boeteUitdeler'),
   })
 
   revalidatePath('/leider/spelers')
   revalidatePath('/leider')
+  revalidatePath('/boetepot', 'layout')
 }
 
 /** De deur 24 uur openzetten, zodat je niet dertien keer op goedkeuren hoeft te tikken. */

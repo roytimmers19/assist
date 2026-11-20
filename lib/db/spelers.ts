@@ -79,6 +79,8 @@ export async function wijzigSpeler(
       | 'rol'
       | 'doetTrainingen'
       | 'doetWedstrijden'
+      | 'penningmeester'
+      | 'boeteUitdeler'
     >
   >,
 ): Promise<void> {

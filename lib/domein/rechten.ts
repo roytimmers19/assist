@@ -9,3 +9,23 @@
 export function magLeiden(speler: { rol: 'speler' | 'leider'; beheerder: boolean }): boolean {
   return speler.rol === 'leider' || speler.beheerder
 }
+
+type Boeterechten = {
+  rol: 'speler' | 'leider'
+  beheerder: boolean
+  penningmeester: boolean
+  boeteUitdeler: boolean
+}
+
+/**
+ * Wie in de boetepot boetes mag geven, intrekken en voorstellen afhandelen:
+ * wie mag leiden, een penningmeester en een boete-uitdeler.
+ */
+export function magBoetesGeven(speler: Boeterechten): boolean {
+  return magLeiden(speler) || speler.penningmeester || speler.boeteUitdeler
+}
+
+/** Wie mag afvinken wat betaald is en de vaste boetes beheert. */
+export function magAfrekenen(speler: Omit<Boeterechten, 'boeteUitdeler'>): boolean {
+  return magLeiden(speler) || speler.penningmeester
+}

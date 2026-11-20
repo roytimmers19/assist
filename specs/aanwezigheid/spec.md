@@ -39,8 +39,10 @@ bepaalt of hij moet bellen, schuiven of niets hoeft te doen.
     23:59:59 in `Europe/Amsterdam`: de dinsdag vóór een wedstrijd en de
     woensdag vóór een training. Eén functie bepaalt hem voor alles wat hem
     toont of gebruikt: de tekst op het beginscherm, het app-bericht van de
-    leider en het stempel "te laat". De `afmeld_deadline` per event, in uren
-    uit `eventtype_instelling`, neemt dit over zodra de boetepot komt.
+    leider, het stempel "te laat" en de voorgestelde boete in de boetepot
+    (`specs/boetepot/spec.md`). Of de `afmeld_deadline` per event, in uren uit
+    `eventtype_instelling`, dit ooit overneemt, is een eigen besluit; de
+    boetepot volgt gewoon wat deze functie zegt.
   - Te laat afmelden is een stempel, geen slot: afmelden blijft altijd kunnen.
 
 ## Contract

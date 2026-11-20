@@ -59,6 +59,12 @@ wat niet mag, maar hier is het de bedoeling.
     het label "leider" laten alleen de rol zien. Een leider kan het
     beheerdersrecht niet zien, geven of afnemen. Dat de andere leiders niet
     weten wie het heeft, is een bewuste keuze van de eigenaar.
+  - Voor de boetepot zijn er twee vinkjes per speler: **penningmeester** en
+    **boete-uitdeler**. Die zet een leider of de beheerder in het
+    spelersoverzicht, en er mogen er meer zijn dan één. Ze geven geen toegang
+    tot de leidersschermen. `magBoetesGeven` en `magAfrekenen` in
+    `lib/domein/rechten.ts` beslissen wat ze wel geven; wat dat precies is,
+    staat in `specs/boetepot/spec.md`.
 
 ## Contract
 
@@ -108,6 +114,8 @@ wat niet mag, maar hier is het de bedoeling.
   het met de hand in de database.
 - Het beheerdersrecht hoort bij de spelersrij. Verdwijnt de speler, dan
   verdwijnt het recht mee.
+- Penningmeester of boete-uitdeler zijn maakt niemand leider. `magLeiden` kijkt
+  alleen naar de rol en het beheerdersrecht.
 - De databasetests draaien nooit tegen iets anders dan de testdatabase.
   `tests/db/opzet.ts` zet `DATABASE_URL` gelijk aan `DATABASE_URL_TEST` voordat
   Better Auth geladen wordt, want die pakt zijn verbinding uit de eerste.

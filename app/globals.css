@@ -19,6 +19,10 @@
   --color-komt-op: #7fe0ab;
   --color-weg: #d94b49;
   --color-weg-op: #ff9d9b;
+
+  /* Het geel van een gele kaart: de top drie en een nieuwe boete. */
+  --color-kaart: #f2c014;
+  --color-kaart-op: #ffd95a;
   --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
 }
