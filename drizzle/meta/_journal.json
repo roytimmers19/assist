@@ -57,6 +57,13 @@
       "when": 1791913675972,
       "tag": "0007_young_manta",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795165813305,
+      "tag": "0008_short_killmonger",
+      "breakpoints": true
     }
   ]
 }
