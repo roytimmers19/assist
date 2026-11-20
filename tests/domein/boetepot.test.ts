@@ -8,6 +8,7 @@ import {
   potCent,
   ranglijst,
   seizoenVan,
+  totaalVan,
 } from '@/lib/domein/boetepot'
 
 let volgnummer = 0
@@ -182,5 +183,19 @@ describe('nieuwe boetes op het beginscherm', () => {
     })
     const vanAap = boete('aap', 500, { gegevenOp: new Date('2026-11-19T12:00:00Z') })
     expect(nieuweBoetes('noot', [ingetrokken, vanAap], nu)).toEqual([])
+  })
+})
+
+describe('het totaal van één speler', () => {
+  it('telt alleen zijn boetes van dat seizoen die meetellen, betaald of niet', () => {
+    const boetes = [
+      boete('aap', 500),
+      boete('aap', 200, { betaaldOp: new Date('2026-11-10T10:00:00Z') }),
+      boete('aap', 300, { ingetrokkenOp: new Date('2026-11-09T10:00:00Z') }),
+      boete('aap', 900, { datum: '2026-06-30' }),
+      boete('noot', 1000),
+    ]
+    expect(totaalVan('aap', boetes, 2026)).toBe(700)
+    expect(totaalVan('wim', boetes, 2026)).toBe(0)
   })
 })

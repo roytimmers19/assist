@@ -48,6 +48,8 @@ export default async function Ranglijst({
   const koploper = plekken[0]?.totaalCent ?? 0
   const top = plekken.filter((p) => p.uitgelicht)
   const rest = plekken.filter((p) => !p.uitgelicht)
+  // Tik op een speler en je ziet zijn boetes; op jezelf is dat "Mijn boetes".
+  const naarBoetes = (id: string) => `/boetepot/boetes?wie=${id === speler.id ? 'mij' : id}`
 
   return (
     <Schil naam={speler.naam} isLeider={speler.magLeiden} tab="boetepot">
@@ -82,9 +84,13 @@ export default async function Ranglijst({
             </span>
           )}
         </div>
-        <p className="uithangbord cijfers mt-4 text-[3.4rem]">{alsEuro(potCent(boetes, seizoen))}</p>
+        <p className="uithangbord cijfers mt-4 text-[3.4rem]">
+          {alsEuro(potCent(boetes, seizoen))}
+        </p>
         <p className="mt-3 text-sm text-white/85">
-          {seizoen === huidig ? 'Sinds 1 juli bij elkaar geboet' : `Bij elkaar geboet in ${alsSeizoen(seizoen)}`}
+          {seizoen === huidig
+            ? 'Sinds 1 juli bij elkaar geboet'
+            : `Bij elkaar geboet in ${alsSeizoen(seizoen)}`}
         </p>
       </section>
 
@@ -102,27 +108,38 @@ export default async function Ranglijst({
             {top.map((p) => {
               const ikZelf = p.spelerId === speler.id
               return (
-                <li
-                  key={p.spelerId}
-                  className={`flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2.5 ${
-                    p.plek === 1 ? 'border-kaart/35 bg-kaart/[0.07]' : 'border-rand bg-paneel'
-                  }`}
-                >
-                  <span className="uithangbord cijfers w-7 text-center text-2xl text-kaart">{p.plek}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className={`kopregel block truncate text-base ${ikZelf ? 'text-komt-op' : ''}`}>
-                      {p.naam}
-                      {ikZelf && <span className="bovenkop ml-2 text-komt-op/80">jij</span>}
+                <li key={p.spelerId}>
+                  <Link
+                    href={naarBoetes(p.spelerId)}
+                    className={`flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors hover:border-club-op/60 ${
+                      p.plek === 1 ? 'border-kaart/35 bg-kaart/[0.07]' : 'border-rand bg-paneel'
+                    }`}
+                  >
+                    <span className="uithangbord cijfers w-7 text-center text-2xl text-kaart">
+                      {p.plek}
                     </span>
-                    <span
-                      className={`mt-1.5 block h-1.5 rounded-full ${p.plek === 1 ? 'bg-kaart' : 'bg-kaart/70'}`}
-                      style={{ width: `${Math.max(4, (p.totaalCent / koploper) * 100)}%` }}
-                      aria-hidden
-                    />
-                  </span>
-                  <span className="uithangbord cijfers shrink-0 whitespace-nowrap text-right text-lg">
-                    {alsEuro(p.totaalCent)}
-                  </span>
+                    <span className="min-w-0 flex-1">
+                      <span
+                        className={`kopregel block truncate text-base ${ikZelf ? 'text-komt-op' : ''}`}
+                      >
+                        {p.naam}
+                        {ikZelf && <span className="bovenkop ml-2 text-komt-op/80">jij</span>}
+                      </span>
+                      <span
+                        className={`mt-1.5 block h-1.5 rounded-full ${p.plek === 1 ? 'bg-kaart' : 'bg-kaart/70'}`}
+                        style={{
+                          width: `${Math.max(4, (p.totaalCent / koploper) * 100)}%`,
+                        }}
+                        aria-hidden
+                      />
+                    </span>
+                    <span className="uithangbord cijfers shrink-0 whitespace-nowrap text-right text-lg">
+                      {alsEuro(p.totaalCent)}
+                    </span>
+                    <span className="text-zacht" aria-hidden>
+                      ›
+                    </span>
+                  </Link>
                 </li>
               )
             })}
@@ -134,37 +151,44 @@ export default async function Ranglijst({
             {rest.map((p) => {
               const ikZelf = p.spelerId === speler.id
               return (
-                <li
-                  key={p.spelerId}
-                  className={`flex min-h-11 items-center gap-3 border-b border-rand/60 px-3 py-2 last:border-b-0 ${
-                    ikZelf ? 'rounded-lg bg-komt/10' : ''
-                  }`}
-                >
-                  <span
-                    className={`uithangbord cijfers w-7 text-center text-sm ${
-                      ikZelf ? 'text-komt-op' : 'text-club-op/80'
+                <li key={p.spelerId} className="border-b border-rand/60 last:border-b-0">
+                  <Link
+                    href={naarBoetes(p.spelerId)}
+                    className={`flex min-h-11 items-center gap-3 px-3 py-2 transition-colors hover:bg-paneel ${
+                      ikZelf ? 'rounded-lg bg-komt/10' : ''
                     }`}
                   >
-                    {p.plek}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className={`block truncate text-sm ${ikZelf ? 'text-komt-op' : ''}`}>
-                      {p.naam}
-                      {ikZelf && <span className="bovenkop ml-2 text-komt-op/80">jij</span>}
+                    <span
+                      className={`uithangbord cijfers w-7 text-center text-sm ${
+                        ikZelf ? 'text-komt-op' : 'text-club-op/80'
+                      }`}
+                    >
+                      {p.plek}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className={`block truncate text-sm ${ikZelf ? 'text-komt-op' : ''}`}>
+                        {p.naam}
+                        {ikZelf && <span className="bovenkop ml-2 text-komt-op/80">jij</span>}
+                      </span>
+                      <span
+                        className={`mt-1 block h-1 rounded-full ${ikZelf ? 'bg-komt-op/50' : 'bg-zacht/35'}`}
+                        style={{
+                          width: `${Math.max(3, (p.totaalCent / koploper) * 100)}%`,
+                        }}
+                        aria-hidden
+                      />
                     </span>
                     <span
-                      className={`mt-1 block h-1 rounded-full ${ikZelf ? 'bg-komt-op/50' : 'bg-zacht/35'}`}
-                      style={{ width: `${Math.max(3, (p.totaalCent / koploper) * 100)}%` }}
-                      aria-hidden
-                    />
-                  </span>
-                  <span
-                    className={`cijfers w-20 shrink-0 whitespace-nowrap text-right text-sm ${
-                      ikZelf ? 'text-komt-op' : ''
-                    }`}
-                  >
-                    {alsEuro(p.totaalCent)}
-                  </span>
+                      className={`cijfers w-20 shrink-0 whitespace-nowrap text-right text-sm ${
+                        ikZelf ? 'text-komt-op' : ''
+                      }`}
+                    >
+                      {alsEuro(p.totaalCent)}
+                    </span>
+                    <span className="text-zacht" aria-hidden>
+                      ›
+                    </span>
+                  </Link>
                 </li>
               )
             })}
