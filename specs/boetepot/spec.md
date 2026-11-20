@@ -141,8 +141,9 @@ niemand meer zelf bij te houden. De app stelt hem voor; een mens beslist.
   waar is:
   - De speler stond op het moment van de afmeldgrens op "ja", door een melding
     of door zijn standaard.
-  - Hij staat nu op "nee", en die "nee" begon met een afmelding die hij ná de
-    grens zelf deed.
+  - Hij staat nu op "nee", en die "nee" begon met een afmelding ná de grens,
+    door hemzelf of door een leider. Een leider meldt vaak iemand af die het
+    hem per app liet weten; het blijft een voorstel.
   - Die afmelding kwam ná het moment dat de soort voor te laat afmelden aan
     dat soort event werd gekoppeld.
   - Het event is niet afgelast.
@@ -374,10 +375,11 @@ Scenario: weer aanmelden laat het voorstel vervallen
 Bewezen door: `tests/domein/voorstellen.test.ts`
 
 ```gherkin
-Scenario: een afmelding door een leider geeft geen voorstel
+Scenario: ook een te late afmelding door een leider geeft een voorstel
   Gegeven dat noot op dinsdagavond op "ja" staat
   Als mies, een leider, noot woensdag op nee zet
-  Dan staat er geen voorstel voor noot
+  Dan staat er een voorstel voor noot
+  Maar had mies hem al vóór de grens afgemeld, dan niet
 ```
 
 Bewezen door: `tests/domein/voorstellen.test.ts`
