@@ -57,8 +57,9 @@ wat niet mag, maar hier is het de bedoeling.
     kijkt hij niet zelf.
   - De rol en het beheerdersrecht staan los van elkaar. Het vakje "Leider" en
     het label "leider" laten alleen de rol zien. Een leider kan het
-    beheerdersrecht niet zien, geven of afnemen. Dat de andere leiders niet
-    weten wie het heeft, is een bewuste keuze van de eigenaar.
+    beheerdersrecht niet zien, geven of afnemen. Wel lezen andere leiders bij
+    een melding wie hem zette, ook als dat de beheerder was: daarvoor koos de
+    eigenaar, zodat altijd duidelijk is wie iemand af- of aanmeldde.
   - Voor de boetepot zijn er twee vinkjes per speler: **penningmeester** en
     **boete-uitdeler**. Die zet een leider of de beheerder in het
     spelersoverzicht, en er mogen er meer zijn dan één. Ze geven geen toegang

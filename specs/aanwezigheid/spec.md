@@ -32,9 +32,9 @@ bepaalt of hij moet bellen, schuiven of niets hoeft te doen.
     afmelden door de speler zelf; dat dwingen de actie en het formulier af, niet
     de database.
   - Een melding onthoudt wie hem zette. Het leiderscherm toont "door jou gezet"
-    alleen aan wie het zelf deed. Andere leiders zien "door een leider gezet".
-    Dat geldt ook als een beheerder hem zette (zie de spec van toegang), en als
-    niet meer te achterhalen is wie het was.
+    aan wie het zelf deed, en anders de naam: "door Stijn gezet". Dat geldt ook
+    als de beheerder hem zette; de eigenaar koos daarvoor. Is niet meer te
+    achterhalen wie het was, dan staat er "door een leider gezet".
   - De afmeldgrens (`lib/domein/telaat.ts`) is voorlopig een vaste weekdag om
     23:59:59 in `Europe/Amsterdam`: de dinsdag vóór een wedstrijd en de
     woensdag vóór een training. Eén functie bepaalt hem voor alles wat hem
@@ -138,11 +138,10 @@ Scenario: wie het zelf zette leest "door jou gezet"
 Bewezen door: `tests/domein/aanwezigheid.test.ts`
 
 ```gherkin
-Scenario: een andere leider leest "door een leider gezet"
+Scenario: een andere leider leest wie het zette
   Gegeven dat aap, een beheerder of een leider, noot op nee zette
   Als mies, een andere leider, het leiderscherm bekijkt
-  Dan staat er bij noot "door een leider gezet"
-  En nergens wie het was
+  Dan staat er bij noot "door aap gezet"
 ```
 
 Bewezen door: `tests/domein/aanwezigheid.test.ts`

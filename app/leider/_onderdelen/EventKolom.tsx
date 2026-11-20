@@ -82,6 +82,7 @@ export function EventKolom({
   voorstelCent?: number | null
 }) {
   const spelerVan = new Map(spelers.map((s) => [s.id, s]))
+  const naamVan = new Map(spelers.map((s) => [s.id, s.naam]))
   // Na de afmeldgrens vraagt elke knop eerst om bevestiging.
   const grensVoorbij = isTeLaatAfgemeld(new Date(), event)
   const titel = eventTitel(event)
@@ -105,7 +106,7 @@ export function EventKolom({
   function Regel({ regel }: { regel: Stand }) {
     const speler = spelerVan.get(regel.spelerId)
     const weg = regel.status === 'nee'
-    const doorWie = gezetDoorTekst(regel, kijkerId)
+    const doorWie = gezetDoorTekst(regel, kijkerId, naamVan)
     const teLaat = weg && isTeLaatAfgemeld(regel.gezetOp ?? null, event)
 
     return (

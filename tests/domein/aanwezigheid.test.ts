@@ -119,6 +119,10 @@ describe('actueleStand met een standaard', () => {
 })
 
 describe('gezetDoorTekst', () => {
+  const namen = new Map([
+    ['aap', 'aap'],
+    ['mies', 'mies'],
+  ])
   const stand = (bron: Stand['bron'], gezetDoor: string | null): Stand => ({
     spelerId: 'noot',
     status: 'nee',
@@ -129,23 +133,37 @@ describe('gezetDoorTekst', () => {
   })
 
   it('zegt "door jou gezet" tegen wie het zelf zette', () => {
-    expect(gezetDoorTekst(stand('leider', 'mies'), 'mies')).toBe('door jou gezet')
+    expect(gezetDoorTekst(stand('leider', 'mies'), 'mies', namen)).toBe('door jou gezet')
   })
 
-  // Of aap nu leider of beheerder is: mies leest niet wie het was.
-  it('zegt "door een leider gezet" tegen een andere leider', () => {
-    expect(gezetDoorTekst(stand('leider', 'aap'), 'mies')).toBe('door een leider gezet')
+  // Of aap nu leider of beheerder is: mies leest wie het was.
+  it('noemt tegen een andere leider de naam van wie het zette', () => {
+    expect(gezetDoorTekst(stand('leider', 'aap'), 'mies', namen)).toBe('door aap gezet')
   })
 
   it('zegt "door een leider gezet" als niet meer te achterhalen is wie het was', () => {
-    expect(gezetDoorTekst(stand('leider', null), 'mies')).toBe('door een leider gezet')
+    expect(gezetDoorTekst(stand('leider', null), 'mies', namen)).toBe('door een leider gezet')
   })
 
   it('zegt niets bij een melding van de speler zelf', () => {
-    expect(gezetDoorTekst(stand('speler', 'noot'), 'mies')).toBeNull()
+    expect(gezetDoorTekst(stand('speler', 'noot'), 'mies', namen)).toBeNull()
   })
 
   it('zegt niets bij een aanname', () => {
-    expect(gezetDoorTekst(stand('aanname', null), 'mies')).toBeNull()
+    expect(gezetDoorTekst(stand('aanname', null), 'mies', namen)).toBeNull()
+  })
+})
+
+describe('gezetDoorTekst zonder bekende naam', () => {
+  it('valt terug op "door een leider gezet" als de naam niet bekend is', () => {
+    const stand: Stand = {
+      spelerId: 'noot',
+      status: 'nee',
+      bron: 'leider',
+      toelichting: null,
+      gezetDoor: 'onbekend-id',
+      gezetOp: new Date('2026-11-20T12:00:00Z'),
+    }
+    expect(gezetDoorTekst(stand, 'mies', new Map())).toBe('door een leider gezet')
   })
 })
