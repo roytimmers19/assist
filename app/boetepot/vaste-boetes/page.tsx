@@ -160,6 +160,11 @@ export default async function VasteBoetes({
                     Bewaar
                   </Knop>
                 </div>
+                {gekoppeld && (
+                  <p className="text-xs text-zacht">
+                    Kies je een andere, dan vervallen de voorstellen die nu nog openstaan.
+                  </p>
+                )}
               </form>
             )
           })}

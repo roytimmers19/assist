@@ -19,9 +19,10 @@ import {
 } from '@/lib/db/boetepot'
 import { db } from '@/lib/db/client'
 import { events } from '@/lib/db/schema'
+import { leesActieveSpelers } from '@/lib/db/spelers'
 import { dagVan } from '@/lib/domein/afwezigheid'
 import { voorstellen } from '@/lib/domein/voorstellen'
-import { leesBoeteKeuze } from '@/lib/weergave/boeteformulier'
+import { alsId, kiesSpelers, leesBoeteKeuze } from '@/lib/weergave/boeteformulier'
 import { alsTekst, alsVinkje } from '@/lib/weergave/formulier'
 import { alsCenten } from '@/lib/weergave/geld'
 
@@ -35,7 +36,10 @@ export async function geefBoete(formulier: FormData) {
   const gever = await vereisBoeteGever()
   const verbinding = db()
 
-  const spelerIds = formulier.getAll('spelerId').map(String).filter(Boolean)
+  const spelerIds = kiesSpelers(
+    formulier.getAll('spelerId').map(String),
+    (await leesActieveSpelers(verbinding)).map((s) => s.id),
+  )
   if (spelerIds.length === 0) redirect('/boetepot/geven?fout=wie')
 
   const keuze = leesBoeteKeuze(
@@ -49,11 +53,13 @@ export async function geefBoete(formulier: FormData) {
   if ('fout' in keuze) redirect(`/boetepot/geven?fout=${keuze.fout}`)
 
   // Hoort hij bij een event, dan is dat de dag van de boete; anders vandaag.
-  const eventId = alsTekst(formulier, 'eventId') || null
+  const gekozenEvent = alsTekst(formulier, 'eventId')
+  const eventId = alsId(gekozenEvent)
+  if (gekozenEvent && !eventId) redirect('/boetepot/geven?fout=event')
   let datum = dagVan(new Date())
   if (eventId) {
     const [event] = await verbinding.select().from(events).where(eq(events.id, eventId))
-    if (!event) redirect('/boetepot/geven?fout=event')
+    if (!event || event.status === 'afgelast') redirect('/boetepot/geven?fout=event')
     datum = dagVan(event.startOp)
   }
 
@@ -64,7 +70,8 @@ export async function geefBoete(formulier: FormData) {
 
 export async function trekBoeteInAlsGever(formulier: FormData) {
   const gever = await vereisBoeteGever()
-  await trekBoeteIn(db(), alsTekst(formulier, 'boeteId'), gever.id)
+  const boeteId = alsId(alsTekst(formulier, 'boeteId'))
+  if (boeteId) await trekBoeteIn(db(), boeteId, gever.id)
   ververs()
 }
 
@@ -96,18 +103,20 @@ export async function laatVoorstelVallenAlsGever(formulier: FormData) {
 
 export async function zetBetaaldAlsAfrekenaar(formulier: FormData) {
   const afrekenaar = await vereisAfrekenaar()
-  const spelerId = alsTekst(formulier, 'spelerId')
-  const moment = await zetBetaald(db(), spelerId, afrekenaar.id)
+  const spelerId = alsId(alsTekst(formulier, 'spelerId'))
+  if (!spelerId) redirect('/boetepot/afrekenen')
+  await zetBetaald(db(), spelerId, afrekenaar.id)
   ververs()
   // Zo weet het scherm welke regel net is afgevinkt en "Ongedaan maken" toont.
-  redirect(`/boetepot/afrekenen?net=${spelerId}&op=${moment.toISOString()}`)
+  redirect(`/boetepot/afrekenen?net=${spelerId}`)
 }
 
 export async function maakBetaaldOngedaanAlsAfrekenaar(formulier: FormData) {
   await vereisAfrekenaar()
   const op = new Date(alsTekst(formulier, 'betaaldOp'))
   if (Number.isNaN(op.getTime())) throw new Error('Onbekend moment van afvinken.')
-  await maakBetaaldOngedaan(db(), alsTekst(formulier, 'spelerId'), op)
+  const spelerId = alsId(alsTekst(formulier, 'spelerId'))
+  if (spelerId) await maakBetaaldOngedaan(db(), spelerId, op)
   ververs()
   redirect('/boetepot/afrekenen')
 }
@@ -120,7 +129,7 @@ export async function bewaarVasteBoete(formulier: FormData) {
   if (bedragCent === null) redirect('/boetepot/vaste-boetes?fout=bedrag')
 
   await bewaarBoetesoort(db(), {
-    id: alsTekst(formulier, 'soortId') || undefined,
+    id: alsId(alsTekst(formulier, 'soortId')) ?? undefined,
     omschrijving,
     bedragCent,
   })
@@ -129,7 +138,8 @@ export async function bewaarVasteBoete(formulier: FormData) {
 
 export async function zetVasteBoeteActief(formulier: FormData) {
   await vereisAfrekenaar()
-  await zetSoortActief(db(), alsTekst(formulier, 'soortId'), alsVinkje(formulier, 'actief'))
+  const soortId = alsId(alsTekst(formulier, 'soortId'))
+  if (soortId) await zetSoortActief(db(), soortId, alsVinkje(formulier, 'actief'))
   ververs()
 }
 
@@ -137,6 +147,10 @@ export async function koppelTeLaatAfmelden(formulier: FormData) {
   await vereisAfrekenaar()
   const type = alsTekst(formulier, 'type')
   if (type !== 'training' && type !== 'wedstrijd') throw new Error('Onbekend soort event.')
-  await koppelTeLaat(db(), type, alsTekst(formulier, 'soortId') || null)
+  // Alleen een vaste boete die op de lijst staat; leeg is "geen voorstel".
+  const gekozen = alsTekst(formulier, 'soortId')
+  const soort = (await leesBoetesoorten(db())).find((s) => s.id === gekozen && s.actief)
+  if (gekozen && !soort) redirect('/boetepot/vaste-boetes')
+  await koppelTeLaat(db(), type, soort?.id ?? null)
   ververs()
 }

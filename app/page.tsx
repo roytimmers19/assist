@@ -103,7 +103,7 @@ export default async function Startpagina() {
         >
           <span className="h-5 w-3.5 shrink-0 rotate-6 rounded-[3px] bg-kaart" aria-hidden />
           <span className="min-w-0 flex-1 text-sm">
-            <span className="kopregel block truncate">Boete: {boete.omschrijving.toLowerCase()}</span>
+            <span className="kopregel block truncate">Boete: {boete.omschrijving}</span>
             <span className="block text-xs text-zacht">Bekijk de boetepot</span>
           </span>
           <span className="uithangbord cijfers whitespace-nowrap text-lg">{alsEuro(boete.bedragCent)}</span>

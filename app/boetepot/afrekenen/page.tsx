@@ -29,10 +29,10 @@ function OngedaanMaken({ spelerId, betaaldOp }: { spelerId: string; betaaldOp: D
 export default async function Afrekenen({
   searchParams,
 }: {
-  searchParams: Promise<{ net?: string; op?: string }>
+  searchParams: Promise<{ net?: string }>
 }) {
   const speler = await vereisAfrekenaar()
-  const { net, op } = await searchParams
+  const { net } = await searchParams
   const verbinding = db()
   const [boetes, spelers] = await Promise.all([leesBoetes(verbinding), leesAlleSpelers(verbinding)])
 
@@ -44,9 +44,8 @@ export default async function Afrekenen({
 
   // Wie net is afgevinkt, blijft bovenaan staan met "Ongedaan maken", tot je
   // het scherm verlaat. Zo hoef je niet te zoeken om een vergissing terug te draaien.
-  const netAfgevinkt = lijst.afgerekend.find(
-    (r) => r.spelerId === net && op && r.laatstBetaaldOp.toISOString() === op,
-  )
+  // Ook na een dubbele tik: dan staat hij gewoon nog afgerekend.
+  const netAfgevinkt = lijst.afgerekend.find((r) => r.spelerId === net)
   const afgerekend = lijst.afgerekend.filter((r) => r !== netAfgevinkt)
   const vandaag = dagVan(new Date())
 

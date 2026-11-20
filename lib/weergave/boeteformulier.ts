@@ -28,3 +28,22 @@ export function leesBoeteKeuze(
   if (!soort) return { fout: 'soort' }
   return { soortId: soort.id, omschrijving: soort.omschrijving, bedragCent: soort.bedragCent }
 }
+
+const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * Een id uit een verzoek, of niets. Een kapot id hoort een gewone fout te
+ * geven, geen foutpagina van de database.
+ */
+export function alsId(waarde: string): string | null {
+  return ID.test(waarde) ? waarde : null
+}
+
+/**
+ * Wie de boete krijgt: elke speler één keer, en alleen wie nu in de ploeg zit.
+ * Een verzoek dat iemand twee keer noemt, geeft geen twee boetes.
+ */
+export function kiesSpelers(gevraagd: string[], ploeg: string[]): string[] {
+  const inPloeg = new Set(ploeg)
+  return [...new Set(gevraagd)].filter((id) => inPloeg.has(id))
+}
